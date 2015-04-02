@@ -3,7 +3,6 @@ bin/*
 build/*
 include/*
 lib/*
-!.gitkeep
 
 # Compiled Object files
 *.slo
