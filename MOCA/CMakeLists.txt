@@ -1,0 +1,39 @@
+# MOCA CMakeList.txt ecrit par Marc-Andre Brochu
+# Le 1er avril 2015 (joyeux mois de l'autisme!)
+# Pour le projet MOCA, Cegep de l'Outaouais
+# ====================================================
+
+cmake_minimum_required(VERSION 3.1.0)
+
+option(BUILD_SHARED_LIBS "Builds MOCA as a shared library (default ON)" ON)
+
+# Pour que cmake trouve les sources et les headers, il faut les
+# specifier ici.
+set(MOCA_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/)
+set(MOCA_INC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include/MOCA/)
+set(MOCA_INC_INSTALL ${CMAKE_CURRENT_SOURCE_DIR}/include/)
+
+include_directories(${MOCA_INC_DIR})
+
+# Lister toutes les sources qui vont etre compilees ici.
+# Il serait possible d'utiliser la commande GLOB afin de ne
+# pas avoir a le faire mais cette methode vient avec certains
+# problemes qui ne sont pas souhaitables dans notre cas, tel
+# des problemes avec git.
+set(SRCS
+    A.cpp
+    B.cpp)
+
+# Ajouter le path des sources aux sources en utilisant une macro,
+# comme ca on est pas oblige de le specifier dans la liste des
+# sources ci-haut
+add_prefix_to_list(SRCS ${MOCA_SRC_DIR})
+add_library(moca ${SRCS})
+
+# Pour que les librairies et les executables qui linkent avec MOCA
+# puissent trouver les headers lors de la compilation
+target_include_directories(moca PUBLIC ${MOCA_INC_INSTALL})
+
+# Installe la librairie et les headers aux bons endroit
+install(TARGETS moca DESTINATION ${LIB_OUTPUT})
+install(DIRECTORY ${MOCA_INC_INSTALL} DESTINATION ${INC_OUTPUT} FILES_MATCHING PATTERN "*.h")
