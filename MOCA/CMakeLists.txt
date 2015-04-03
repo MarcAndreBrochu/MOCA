@@ -21,8 +21,15 @@ include_directories(${MOCA_INC_DIR})
 # problemes qui ne sont pas souhaitables dans notre cas, tel
 # des problemes avec git.
 set(SRCS
-    A.cpp
-    B.cpp)
+    AbstractBody.cpp
+    Ball.cpp
+    Box.cpp
+    CollisionHandler.cpp
+    Integrator.cpp
+    Particle.cpp
+    Solid.cpp
+    Stardust.cpp
+    World.cpp)
 
 # Ajouter le path des sources aux sources en utilisant une macro,
 # comme ca on est pas oblige de le specifier dans la liste des
