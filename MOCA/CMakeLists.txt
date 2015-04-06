@@ -32,11 +32,24 @@ set(SRCS
     Stardust.cpp
     World.cpp)
 
+# Lister les headers uniquement pour que QtCreator les liste
+set(HEADERS
+    AbstractBody.h
+    Ball.h
+    Box.h
+    CollisionHandler.h
+    Integrator.h
+    Particle.h
+    Solid.h
+    World.h
+    MOCA.h)
+
 # Ajouter le path en prefixe aux sources en utilisant une macro,
 # comme ca on est pas oblige de le specifier dans la liste des
 # sources ci-haut et ca evite la redondance
 add_prefix_to_list(SRCS ${MOCA_SRC_DIR})
-add_library(moca ${SRCS})
+add_prefix_to_list(HEADERS ${MOCA_INC_DIR})
+add_library(moca ${SRCS} ${HEADERS})
 
 # Pour que les librairies et les executables qui linkent avec MOCA
 # puissent trouver les headers lors de la compilation
