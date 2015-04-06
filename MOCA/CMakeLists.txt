@@ -2,6 +2,7 @@
 # Le 1er avril 2015 (joyeux mois de l'autisme!)
 # Pour le projet MOCA, Cegep de l'Outaouais
 # ====================================================
+# DMAJ: 6 avril 2015
 
 cmake_minimum_required(VERSION 3.1.0)
 
@@ -19,7 +20,7 @@ include_directories(${MOCA_INC_DIR})
 # Il serait possible d'utiliser la commande GLOB afin de ne
 # pas avoir a le faire mais cette methode vient avec certains
 # problemes qui ne sont pas souhaitables dans notre cas, tel
-# des problemes avec git.
+# des problemes avec git rebase.
 set(SRCS
     AbstractBody.cpp
     Ball.cpp
@@ -31,9 +32,9 @@ set(SRCS
     Stardust.cpp
     World.cpp)
 
-# Ajouter le path des sources aux sources en utilisant une macro,
+# Ajouter le path en prefixe aux sources en utilisant une macro,
 # comme ca on est pas oblige de le specifier dans la liste des
-# sources ci-haut
+# sources ci-haut et ca evite la redondance
 add_prefix_to_list(SRCS ${MOCA_SRC_DIR})
 add_library(moca ${SRCS})
 

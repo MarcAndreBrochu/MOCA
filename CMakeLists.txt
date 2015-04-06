@@ -2,16 +2,16 @@
 # Le 1er avril 2015 (joyeux mois de l'autisme!)
 # Pour le projet MOCA, Cegep de l'Outaouais
 # ====================================================
+# DMAJ: 6 avril 2015
 #
-# Ce qu'on veut que cmake genere comme processus:
-# 1. Creer une librairie physique a partir du code dans /MOCA
-#    La librairie va etre placee dans /lib et les headers dans
-#    /include/MOCA
-# 2. SI VOULU, compiler les tests et linker avec la librairie
-#    Les tests comprennent l'affichage OpenGL de debug. Il vont
-#    etre places dans /bin/tests
-# 3. SI VOULU, compiler l'editor et linker avec la librairie. Il
-#    va etre place dans /bin/editor
+# Trois targets:
+#  1. MOCA lib
+#  2. moca_test (depends de MOCA lib)
+#  3. Editor (depends de MOCA lib)
+#
+# Donc on veut generer 3 targets, et les deux derniers sont dependants de
+# target numero 1. Il est donc possible de compiler uniquement la lib mais
+# pas de compiler uniquement le test ou l'editor par exemple.
 
 cmake_minimum_required(VERSION 3.1.0)
 include(${CMAKE_SOURCE_DIR}/cmake/PrefixList.cmake)
@@ -25,19 +25,32 @@ project(Projet_MOCA)
 set(LIB_OUTPUT ${CMAKE_SOURCE_DIR}/lib)
 set(BIN_OUTPUT ${CMAKE_SOURCE_DIR}/bin)
 set(INC_OUTPUT ${CMAKE_SOURCE_DIR}/include)
-
 file(MAKE_DIRECTORY ${LIB_OUTPUT})
 file(MAKE_DIRECTORY ${BIN_OUTPUT})
 file(MAKE_DIRECTORY ${INC_OUTPUT})
 
-# Execute immediatement le CMakeList.txt situe dans le dossier ./engine
-# avant de continuer. Donc ca va compiler et linker la librairie du moteur
-# physique et on va pouvoir la linker avec les tests et l'editor
+# Le target 'install' depends de 'all' par defaut, ce qui veut dire que
+# si on fait 'make moca' puis 'make install' par exemple, tous les targets
+# seront compiles au lieu de juste 'moca' comme on le veut. Il faut donc
+# desactiver ce comportement:
+set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY true)
+
+# Changer le path ou le linker va aller chercher les libs dynamiques
+# sinon a l'execution ca plante parce que c'est impossible de localiser
+# MOCA.
+set(CMAKE_SKIP_BUILD_RPATH FALSE)
+set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+set(CMAKE_INSTALL_RPATH ${LIB_OUTPUT})
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
+list(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES ${LIB_OUTPUT} isSystemDir)
+if("${isSystemDir}" STREQUAL "-1")
+    set(CMAKE_INSTALL_RPATH ${LIB_OUTPUT})
+endif()
+
+# Ajouter les CMakeLists.txt
 add_subdirectory(MOCA)
-
-# Maintenant que la librairie est compilee et ajoutee, il est possible de
-# compiler le test ainsi que l'editor
 add_subdirectory(test)
-#add_subdirectory(editor)
+add_subdirectory(editor)
 
-message(STATUS "${BoldGreen}Please run 'make', 'make install' and optionally 'make clean'${ColorReset}")
+message(STATUS "${BoldGreen}Finished parsing top-level CMakeLists.txt${ColorReset}")
