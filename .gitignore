@@ -1,3 +1,5 @@
+*.user
+
 # Dossiers dont le contenu est non-desire
 bin/*
 build/*
