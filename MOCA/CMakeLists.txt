@@ -2,11 +2,18 @@
 # Le 1er avril 2015 (joyeux mois de l'autisme!)
 # Pour le projet MOCA, Cegep de l'Outaouais
 # ====================================================
-# DMAJ: 6 avril 2015
+# DMAJ: 15 avril 2015
 
 cmake_minimum_required(VERSION 3.1.0)
 
 option(BUILD_SHARED_LIBS "Builds MOCA as a shared library (default ON)" ON)
+
+find_package(Armadillo REQUIRED)
+if(${ARMADILLO_FOUND})
+    message(STATUS "${BoldGreen}Found library Armadillo${ColorReset}")
+else()
+    message(FATAL "${BoldRed}Cannot find library Armadillo${ColorReset}")
+endif()
 
 # Pour que cmake trouve les sources et les headers, il faut les
 # specifier ici.
@@ -15,6 +22,7 @@ set(MOCA_INC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include/MOCA/)
 set(MOCA_INC_INSTALL ${CMAKE_CURRENT_SOURCE_DIR}/include/)
 
 include_directories(${MOCA_INC_DIR})
+include_directories(${ARMADILLO_INCLUDE_DIRS})
 
 # Lister toutes les sources qui vont etre compilees ici.
 # Il serait possible d'utiliser la commande GLOB afin de ne
@@ -29,7 +37,6 @@ set(SRCS
     Integrator.cpp
     Particle.cpp
     Solid.cpp
-    Stardust.cpp
     World.cpp)
 
 # Lister les headers uniquement pour que QtCreator les liste
@@ -54,6 +61,7 @@ add_library(moca ${SRCS} ${HEADERS})
 # Pour que les librairies et les executables qui linkent avec MOCA
 # puissent trouver les headers lors de la compilation
 target_include_directories(moca PUBLIC ${MOCA_INC_INSTALL})
+target_link_libraries(moca ${ARMADILLO_LIBRARIES})
 
 # Installe la librairie et les headers aux bons endroit
 install(TARGETS moca DESTINATION ${LIB_OUTPUT})
