@@ -48,6 +48,8 @@ if("${isSystemDir}" STREQUAL "-1")
     set(CMAKE_INSTALL_RPATH ${LIB_OUTPUT})
 endif()
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
 # Ajouter les CMakeLists.txt
 add_subdirectory(MOCA)
 add_subdirectory(test)

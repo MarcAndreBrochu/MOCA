@@ -1,7 +1,6 @@
 #ifndef MOCA_H
 #define MOCA_H
 
-#include "Stardust.h"
 #include "World.h"
 #include "AbstractBody.h"
 
