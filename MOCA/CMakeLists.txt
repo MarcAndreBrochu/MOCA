@@ -49,6 +49,7 @@ set(HEADERS
     Particle.h
     Solid.h
     World.h
+    Utils.h
     MOCA.h)
 
 # Ajouter le path en prefixe aux sources en utilisant une macro,
