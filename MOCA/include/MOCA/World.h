@@ -1,7 +1,7 @@
 #ifndef MOCA_WORLD_H
 #define MOCA_WORLD_H
 
-#include <vector>
+#include <unordered_map>
 #include <armadillo>
 
 class AbstractBody;
@@ -21,11 +21,21 @@ public:
     World();
     ~World();
 
+    /**
+     * @brief Ajoute un corps rigide au World.
+     * @param body Le corps a ajouter
+     * @return L'index du corps ajoute
+     */
+    uint addBody(AbstractBody *body);
+
 private:
+    // Key du dernier corps ajoute au monde
+    uint _lastKeyAssigned;
+
     /** Liste qui contient tous les corps a simuler */
-    std::vector<AbstractBody *> _bodies;
+    std::unordered_map<uint, AbstractBody *> _bodies;
     /** Contient les forces qui s'appliquent en general sur les corps */
-    std::vector<arma::vec> _forces;
+    std::unordered_map<uint, arma::vec> _forces;
 };
 
 #endif // MOCA_WORLD_H
