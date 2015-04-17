@@ -17,7 +17,7 @@ Simpson::Simpson(int a, int b, int n) {
         somme = somme + 2*yFonct(i*h);
     return somme*h/3;
 }
-Simpson::yFonct(double x) {
+Simpson::yFonct(float x) {
 }
 Simpson::~Simpson() {}
 
