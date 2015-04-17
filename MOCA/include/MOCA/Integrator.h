@@ -11,10 +11,11 @@ namespace Integrator {
 class Simpson {
 
 public:
-    Simpson();
+    Simpson(int, int, int);
     ~Simpson();
 
 private:
+    yFonct(float);
 };
 
 /**
