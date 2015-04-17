@@ -14,13 +14,15 @@ class Ball : public Solid {
 
 public:
     Ball();
+    Ball(double radius, bool isHollow = false);
     virtual ~Ball();
 
     // Getters et setters
-    virtual double getInertia() const;
+    virtual arma::mat33 getInertia() const;
     virtual double getVolume() const;
 
     double getRadius() const { return _radius; }
+    void setRadius(double radius) { _radius = radius; }
 
 private:
     double _radius;
