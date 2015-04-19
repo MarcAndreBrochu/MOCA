@@ -1,11 +1,12 @@
 #include "Integrator.h"
 
-using namespace Integrator;
+
+Integrator::Integrator(){}
 
 // .........................................................
 // Implementation de la methode de Simpson
 // .........................................................
-Simpson::Simpson(int a, int b, int n) {
+Integrator::simpson(int a, int b, int n) {
     int i = 0;
     double somme = 0;
     double h = 0.0;
@@ -17,14 +18,22 @@ Simpson::Simpson(int a, int b, int n) {
         somme = somme + 2*yFonct(i*h);
     return somme*h/3;
 }
-Simpson::yFonct(float x) {
-}
-Simpson::~Simpson() {}
-
 
 
 // .........................................................
 // Implementation de la methode de Verlet
 // .........................................................
-Verlet::Verlet() {}
-Verlet::~Verlet() {}
+Integrator::verlet(arma::vec3 &x, arma::vec3 &v, aram::vec3 a, arma::vec3 a2, int step) {
+  arma::vec3 x2;
+  v += (1/2)*a*step;
+  x += x + v * step;
+  //Ici on trouve normalement a(t + step) -- a2 -- à partir du nouveau x
+  //(en utilisant, par ex, une méthode qui donne l'accel. selon la pos pour un solide donné)
+  v += v + (1/2)*a2*step;
+
+}
+
+Integrator::yFonct(float x) {
+}
+
+Integrator::~Integrator() {}

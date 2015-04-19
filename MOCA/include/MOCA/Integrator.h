@@ -1,37 +1,34 @@
 #ifndef MOCA_INTEGRATOR_H
 #define MOCA_INTEGRATOR_H
 
-namespace Integrator {
+#include <armadillo>
 
 /**
- * @class Simpson
- * @brief Integre numeriquement des donnees sur un intervalle.
- * Integre numeriquement en utilisant la methode de Simpson
+ * @class Integrator
+ * @brief Methodes statiques d'integration
  */
-class Simpson {
+class Integrator {
 
-public:
-    Simpson(int, int, int);
-    ~Simpson();
 
-private:
-    yFonct(float);
+  public:
+      Integrator();
+      //Implementation de la méthode de Simpson pour intégrer numériquement
+      static float simpson(int, int, int);
+
+
+      /**
+      *@brief Implementation de l'algorithme "Velocity Verlet"
+      *@param On a besoin de :
+      *  position initiale x(t)
+      *  vitesse initiale v(t)
+      *  accélération a(t) et a(t+step)
+      */
+      static arma::vec3 verlet(arma::vec3 &, arma::vec3 &, arma::vec3, int);
+
+  private:
+      static float yFonct(float);
+
+
 };
-
-/**
- * @class Verlet
- * @brief Integre numeriquement des donnes sur un intervalle
- * Integre numeriquement en utlisant la methode Verlet
- */
-class Verlet {
-
-public:
-    Verlet();
-    ~Verlet();
-
-private:
-};
-
-} // namespace Integrator
 
 #endif // MOCA_INTEGRATOR_H
