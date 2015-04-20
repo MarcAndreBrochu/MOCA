@@ -28,6 +28,9 @@ public:
      */
     uint addBody(AbstractBody *body);
 
+    // fonction pour mettre à jour le monde et ses objets
+    void updateWorld();
+
 private:
     // Key du dernier corps ajoute au monde
     uint _lastKeyAssigned;
@@ -36,6 +39,10 @@ private:
     std::unordered_map<uint, AbstractBody *> _bodies;
     /** Contient les forces qui s'appliquent en general sur les corps */
     std::unordered_map<uint, arma::vec> _forces;
+
+    //L'intervalle de temps d'une frame en millisecondes
+    double _timeStep;
+
 };
 
 #endif // MOCA_WORLD_H
