@@ -28,14 +28,37 @@ public:
      */
     uint addBody(AbstractBody *body);
 
+    /**
+     * @brief Enleve un corps du monde.
+     * La mort viens le liberer de ses taches mortelles.
+     * @param bid L'index du corps a enlever
+     * @param body Le corps a enlever
+     */
+    void removeBody(uint bid);
+    void removeBody(AbstractBody *body);
+
+    /**
+     * @brief Applique une force sur tous les objets du World
+     * @param force La force a appliquer
+     * @return L'index de la force en memoire
+     */
+    uint applyForce(const arma::vec3 &force);
+
+    /**
+     * @brief Arreter d'appliquer une force sur tous les objets
+     * @param fid L'index de la force en memoire
+     */
+    void removeForce(uint fid);
+
 private:
     // Key du dernier corps ajoute au monde
-    uint _lastKeyAssigned;
+    uint _lastKeyAssignedBody;
+    uint _lastKeyAssignedForce;
 
     /** Liste qui contient tous les corps a simuler */
     std::unordered_map<uint, AbstractBody *> _bodies;
     /** Contient les forces qui s'appliquent en general sur les corps */
-    std::unordered_map<uint, arma::vec> _forces;
+    std::unordered_map<uint, arma::vec3> _forces;
 };
 
 #endif // MOCA_WORLD_H
