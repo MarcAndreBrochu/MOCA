@@ -25,6 +25,7 @@ public:
      * frame, l'impulsion n'est plus appliquee.
      *
      * @param imp L'impulsion a appliquer
+     * @author MAB
      */
     void applyImpulse(const arma::vec3 &imp);
 
@@ -36,36 +37,31 @@ public:
      *
      * @param force La force a appliquer
      * @return L'index de la force en memoire
+     * @author MAB
      */
     uint applyForce(const arma::vec3 &force);
 
     /**
      * @brief Arrete d'appliquer la force #fid sur l'objet.
      * @param fid L'index de la force en memoire
+     * @author MAB
      */
     void removeForce(uint fid);
-
-    /**
-    *@brief Appelée par updateWorld() Début du processus de l'algorithme général
-    * (voir l'organigramme correspondant -- pdf : http://goo.gl/ReUpRH)
-    *@param la durée d'une frame, soit le temps depuis la dernière update
-    *@author LBL
-    */
-    void updateBody(double timeStep);
 
     // Getters et setters
     double getMass() const { return _mass; }
     void uptdSumForces();//maj _sumForces
-    const arma::vec3 &getSumForces() const {return _sumForces;}
-    void uptdSumImpuls();//maj _sumImpuls
-    const arma::vec3 &getSumImpuls() const {return _sumImpuls;}
-    const arma::vec3 getAcceleration();
+    const arma::vec3 &getSumForces() const { return _sumForces; }
+    const arma::vec3 &getImpulsion() const { return _impulsion; }
+    const arma::vec3 &getAcceleration();
     const arma::vec3 &getPosition() const { return _position; }
     const arma::vec3 &getVelocity() const { return _velocity; }
 
     void setMass(double mass) { _mass = mass; }
     void setPosition(const arma::vec3 &position) { _position = position; }
     void setVelocity(const arma::vec3 &velocity) { _velocity = velocity; }
+
+    void resetImpulse() { _impulsion.zeros(); }
 
     // Helpers
     void setPosition(double x, double y, double z);
@@ -81,9 +77,7 @@ protected:
     //Somme des forces
     arma::vec3 _sumForces;
     /** Les impulsions qui s'appliquent sur le corps */
-    std::vector<arma::vec3> _impulsions;
-    //Somme des impulsions
-    arma::vec3 _sumImpuls;
+    arma::vec3 _impulsion;
 
 private:
     // Derniere key associee aux forces
