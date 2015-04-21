@@ -18,7 +18,7 @@ int main(int argc, char **argv) {
     QWindow window;
     window.resize(640, 480);
     window.show();
-
+    
     World world;
 
     return app.exec();

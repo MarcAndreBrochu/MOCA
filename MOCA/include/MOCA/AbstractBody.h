@@ -45,8 +45,21 @@ public:
      */
     void removeForce(uint fid);
 
+    /**
+    *@brief Appelée par updateWorld() Début du processus de l'algorithme général
+    * (voir l'organigramme correspondant -- pdf : http://goo.gl/ReUpRH)
+    *@param la durée d'une frame, soit le temps depuis la dernière update
+    *@author LBL
+    */
+    void updateBody(double timeStep);
+
     // Getters et setters
     double getMass() const { return _mass; }
+    void uptdSumForces();//maj _sumForces
+    const arma::vec3 &getSumForces() const {return _sumForces;}
+    void uptdSumImpuls();//maj _sumImpuls
+    const arma::vec3 &getSumImpuls() const {return _sumImpuls;}
+    const arma::vec3 getAcceleration();
     const arma::vec3 &getPosition() const { return _position; }
     const arma::vec3 &getVelocity() const { return _velocity; }
 
@@ -65,12 +78,16 @@ protected:
 
     /** Les forces qui s'appliquent sur le corps */
     std::unordered_map<uint, arma::vec3> _forces;
+    //Somme des forces
+    arma::vec3 _sumForces;
     /** Les impulsions qui s'appliquent sur le corps */
     std::vector<arma::vec3> _impulsions;
+    //Somme des impulsions
+    arma::vec3 _sumImpuls;
 
 private:
     // Derniere key associee aux forces
     uint _lastKeyAssigned;
 };
 
-#endif // MOCA_ABSTRACT_BODY_H
+#endif // MOCA_ABSTRACT_BO

@@ -50,3 +50,11 @@ void World::removeForce(uint fid) {
 
     _forces.erase(item);
 }
+
+void World::updateWorld(){
+  for(auto i = _bodies.begin(); i != _bodies.end(); i++)
+  {
+    _bodies[i]->updateBody(_timeStep);
+  }
+
+}

@@ -50,6 +50,9 @@ public:
      */
     void removeForce(uint fid);
 
+    // fonction pour mettre à jour le monde et ses objets
+    void updateWorld();
+
 private:
     // Key du dernier corps ajoute au monde
     uint _lastKeyAssignedBody;
