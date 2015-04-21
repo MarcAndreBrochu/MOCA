@@ -11,27 +11,32 @@ class AbstractBody;
  */
 class Integrator {
 
+public:
+    Integrator();
+    ~Integrator();
 
-  public:
-      Integrator();
-      //Implementation de la méthode de Simpson pour intégrer numériquement
-      static float simpson(int, int, int);
+    struct Status {
+        arma::vec3 p; // position
+        arma::vec3 v; // velocity
+        arma::vec3 a; // accel
+    };
 
+    //Implementation de la méthode de Simpson pour intégrer numériquement
+    static float simpson(int, int, int);
 
-      /**
+    /**
       *@brief Implementation de l'algorithme "Velocity Verlet"
       *@param On a besoin de :
       *  position initiale x(t)
       *  vitesse initiale v(t)
       *  accélération a(t) et a(t+step)
+      * @author LBL
       */
-      static arma::vec3 verlet(arma::vec3 &x, arma::vec3 &v, arma::vec3 a, arma::vec3 a2 double);
-      static arma::vec3 verlet(AbstractBody &body, double step);
+    static Status verlet(const arma::vec3 &x, const arma::vec3 &v, const arma::vec3 &a, const arma::vec3 &a2, double step);
+    static Status verlet(const AbstractBody &body, double step);
 
-  private:
-      static float yFonct(double);
-
-
+private:
+    static float yFonct(double);
 };
 
 #endif // MOCA_INTEGRATOR_H
