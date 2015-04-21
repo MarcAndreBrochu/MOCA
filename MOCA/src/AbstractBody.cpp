@@ -10,7 +10,7 @@ AbstractBody::AbstractBody() {
 AbstractBody::~AbstractBody() {}
 
 void AbstractBody::applyImpulse(const vec3 &imp) {
-    _impulsions += imp;
+    _impulsion += imp;
 }
 
 uint AbstractBody::applyForce(const arma::vec3 &force) {
@@ -19,7 +19,7 @@ uint AbstractBody::applyForce(const arma::vec3 &force) {
     // le nouvel index
     _forces[++_lastKeyAssigned] = vec3(force);
     //On additionne egalement la force a la somme de forces
-    _sumForces = _sumForces + force;
+    _sumForces += force;
     return _lastKeyAssigned;
 }
 
@@ -31,17 +31,10 @@ void AbstractBody::removeForce(uint fid) {
         throw out_of_range("Cannot remove: force doesn't exists");
 
     _forces.erase(emp);
+    _sumForces -= emp->second;
 }
 
-void AbstractBody::uptdSumForces() {
-
-    _sumForces = vec(3, fill::zeros);
-    for(auto it = _forces.begin(); it != _forces.end(); it++) {
-        _sumForces = _sumForces + _forces[it];
-    }
-}
-
-vec3 AbstractBody::getAcceleration() {
+vec3 AbstractBody::getAcceleration() const {
 
     vec3 a;
     a[0] = _sumForces[0] / _mass;//acceleration en x

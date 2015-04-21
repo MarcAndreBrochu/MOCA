@@ -50,10 +50,8 @@ public:
 
     // Getters et setters
     double getMass() const { return _mass; }
-    void uptdSumForces();//maj _sumForces
     const arma::vec3 &getSumForces() const { return _sumForces; }
     const arma::vec3 &getImpulsion() const { return _impulsion; }
-    const arma::vec3 &getAcceleration();
     const arma::vec3 &getPosition() const { return _position; }
     const arma::vec3 &getVelocity() const { return _velocity; }
 
@@ -61,7 +59,8 @@ public:
     void setPosition(const arma::vec3 &position) { _position = position; }
     void setVelocity(const arma::vec3 &velocity) { _velocity = velocity; }
 
-    void resetImpulse() { _impulsion.zeros(); }
+    arma::vec3 getAcceleration() const;
+    void resetImpulsion() { _impulsion.zeros(); }
 
     // Helpers
     void setPosition(double x, double y, double z);
