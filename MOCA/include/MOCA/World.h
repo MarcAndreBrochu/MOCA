@@ -38,30 +38,41 @@ public:
     void removeBody(AbstractBody *body);
 
     /**
-     * @brief Applique une force sur tous les objets du World
-     * @param force La force a appliquer
-     * @return L'index de la force en memoire
+     * @brief Applique une acceleration sur tous les objets du World
+     * @param force L'accel a appliquer
+     * @return L'index de l'accel en memoire
      */
-    uint applyForce(const arma::vec3 &force);
+    uint applyAcceleration(const arma::vec3 &accel);
 
     /**
-     * @brief Arreter d'appliquer une force sur tous les objets
-     * @param fid L'index de la force en memoire
+     * @brief Arreter d'appliquer une accel sur tous les objets
+     * @param fid L'index de l'accel en memoire
      */
-    void removeForce(uint fid);
+    void removeAcceleration(uint fid);
 
     // fonction pour mettre à jour le monde et ses objets
-    void updateWorld();
+    void updateWorld(double timeStep);
 
 private:
+    /**
+    * @brief Appelée par updateWorld() Début du processus de l'algorithme général
+    * (voir l'organigramme correspondant -- pdf : http://goo.gl/ReUpRH)
+    * @param body le corps a simuler
+    * @param timeStep la durée d'une frame, soit le temps depuis la dernière update
+    * @author LBL
+    */
+    void updateBody(AbstractBody *body, double timeStep);
+
     // Key du dernier corps ajoute au monde
     uint _lastKeyAssignedBody;
     uint _lastKeyAssignedForce;
 
     /** Liste qui contient tous les corps a simuler */
     std::unordered_map<uint, AbstractBody *> _bodies;
-    /** Contient les forces qui s'appliquent en general sur les corps */
-    std::unordered_map<uint, arma::vec3> _forces;
+    //Somme des accelerations
+    arma::vec3 _sumAccel;
+    /** Contient les accelerations qui s'appliquent en general sur les corps */
+    std::unordered_map<uint, arma::vec3> _accels;
 };
 
 #endif // MOCA_WORLD_H
