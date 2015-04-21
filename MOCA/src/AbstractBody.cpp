@@ -1,3 +1,4 @@
+#include <exception>
 #include "AbstractBody.h"
 
 using namespace std;
@@ -25,7 +26,7 @@ void AbstractBody::removeForce(uint fid) {
     // Il faut s'assurer qu'on va enlever une force qui existe
     unordered_map<uint, vec3>::const_iterator emp = _forces.find(fid);
     if (emp == _forces.end())
-        throw range_error("Force doesn't exists");
+        throw out_of_range("Cannot remove: force doesn't exists");
 
     _forces.erase(emp);
 }
