@@ -4,12 +4,13 @@
 #include <QVector>
 #include <QVector3D>
 #include <QDebug>
-#include <cmath>
+#include <math.h>
 
 
 /*Code pris sur http://goo.gl/PJixnL*/
 struct sphereGeom
 {
+
     sphereGeom( unsigned int subdiv = 4 ) {
         unsigned int perFaceVertexCount = subdiv * subdiv;
         float invSubDiv = 1.f / float(subdiv-1);
@@ -91,12 +92,20 @@ struct vertex
 class VerticeMaker
 {
 public:
+    static constexpr double MO_PI = 3.14159265359;
+    static constexpr double MO_PI_2 = 1.57079632679;
+
     VerticeMaker();
     ~VerticeMaker();
 
     static vertex verticesCube(double a, QVector3D decalage=QVector3D(0.0,0.0,0.0));//retourne les vertices et la couleur d'un cube selon son arrête
     static vertex verticesSphere(sphereGeom s);
     static vertex verticesSphere(float radius, unsigned int rings, unsigned int sectors);
+    static vertex verticesSphere(double a, int depth);
+private:
+    static QVector<QVector3D> subdivideTriangle(QVector3D v1, QVector3D v2, QVector3D v3, int depth);
+
+
 
 };
 
