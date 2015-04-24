@@ -1,8 +1,10 @@
 #include <exception>
 #include "World.h"
 #include "AbstractBody.h"
+#include "Solid.h"
 #include "Integrator.h"
 #include "Utils.h"
+#include "CollisionHandler.h"
 
 using namespace std;
 using namespace arma;
@@ -56,8 +58,8 @@ void World::removeAcceleration(uint fid) {
     if (item == _accels.end())
         throw out_of_range("Cannot remove: force doesn't exists");
 
-    _accels.erase(item);
     _sumAccel -= item->second;
+    _accels.erase(item);
 }
 
 void World::updateWorld(double timeStep) {
@@ -66,34 +68,34 @@ void World::updateWorld(double timeStep) {
 
         AbstractBody *body = i->second;
 
-        this->updateBody(body, timeStep);
-        body->resetImpulsion(); // l'impulsion est reset a chaque frame, par definition
+        // Si le corps est fixe, il n'est pas affecte par les forces et les impulsions
+        if (!(i->second->isFixed())) {
+            this->updateBody(body, timeStep);
+            body->resetImpulse(); // l'impulsion est reset a chaque frame, par definition
+        }
     }
+
+    CollisionHandler *chandler = CollisionHandler::sharedInstance();
 }
 
 void World::updateBody(AbstractBody *body, double timeStep) {
 
     vec3 pos = body->getPosition();
     vec3 velocity = body->getVelocity();
-    vec3 impulse = body->getImpulsion();
+    vec3 impulse = body->getImpulse();
     vec3 accel = body->getAcceleration();
 
-    //on change la velocite selon les impulsions si elle ne sont pas nulles
-    if (any(impulse)) {
+    // .............................................................................
+    // Mouvement recktiligne
+    // .............................................................................
+    //on change la velocite selon les impulsions
+    double mass = body->getMass();
 
-        double mass = body->getMass();
-
-        // Theoreme de l'impulsion:
-        //      J = mv_2 - mv_1
-        //   => v_2 = (J + mv_1) / m
-        velocity[0] = (velocity[0] * mass + impulse[0]) / mass;
-        velocity[1] = (velocity[1] * mass + impulse[1]) / mass;
-        velocity[2] = (velocity[2] * mass + impulse[2]) / mass;
-
-        // Comme l'accel pendant l'impulsion est constante, la pente de
-        // la velocite va l'etre aussi. Ainsi, x = v*t
-        pos += velocity * timeStep;
-    }
+    // Theoreme de l'impulsion:
+    //      J = mv_2 - mv_1
+    //   => v_2 = (J + mv_1) / m
+    velocity = (velocity * mass + impulse) / mass;
+    pos += velocity * timeStep;
 
     // Il s'agit maintenant d'integrer sur les accelerations afin de trouver une
     // nouvelle velocite qui va s'ajouter a celles trouvees ci-haut avec les impulsions.
@@ -114,4 +116,37 @@ void World::updateBody(AbstractBody *body, double timeStep) {
 
     body->setVelocity(velocity);
     body->setPosition(pos);
+
+    // .............................................................................
+    // Mouvement de rotation
+    // .............................................................................
+    // Seuls les solides peuvent avoir une rotation, donc on exit la fonction si
+    // c'est une particule
+    Solid *solidBody = dynamic_cast<Solid *>(body);
+    if (!solidBody)
+        return;
+
+    // Il faut savoir que la methode ne va pas changer l'acceleration angulaire. C'est lors
+    // des collisions qu'un tel phenomene se produit. Pourtant, il faut quand meme updater
+    // la rotation de l'objet, au cas ou il aurait une vitesse angulaire non-nulle ou une
+    // acceleration angulaire non-nulle (ce dernier cas n'etant possible que si il y a eu
+    // collision avant l'appel de cette methode).
+    vec3 angulPos = solidBody->getAngularPosition();
+    vec3 angulVel = solidBody->getAngularVelocity();
+    vec3 angulImp = solidBody->getAngularImpulse();
+
+    mat33 I = solidBody->getInertia(); // l'equivalent de la masse mais en rotation
+
+    // Si on adapte le theoreme de l'impulsion au mouvement rotationnel, ca pourrait donner
+    // qqchose comme ca:
+    // Jrot = ∆L
+    // Jrot = I*w_2 - I*w_1
+    // w_2 = (Jrot + I*w_1)/I
+    vec3 topOp = angulImp + I * angulVel;
+    angulVel = inv(diagmat(I)) * topOp;
+
+    angulPos += angulVel * timeStep;
+
+    solidBody->setAngularVelocity(angulVel);
+    solidBody->setAngularPosition(angulPos);
 }

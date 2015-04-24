@@ -6,11 +6,12 @@ using namespace arma;
 
 AbstractBody::AbstractBody() {
     _lastKeyAssigned = -1; // meme si c'est un uint, uint::max + 1 = 0
+    _isFixed = false;
 }
 AbstractBody::~AbstractBody() {}
 
 void AbstractBody::applyImpulse(const vec3 &imp) {
-    _impulsion += imp;
+    _impulse += imp;
 }
 
 uint AbstractBody::applyForce(const arma::vec3 &force) {
@@ -30,16 +31,16 @@ void AbstractBody::removeForce(uint fid) {
     if (emp == _forces.end())
         throw out_of_range("Cannot remove: force doesn't exists");
 
-    _forces.erase(emp);
     _sumForces -= emp->second;
+    _forces.erase(emp);
 }
 
 vec3 AbstractBody::getAcceleration() const {
 
     vec3 a;
-    a[0] = _sumForces[0] / _mass;//acceleration en x
-    a[1] = _sumForces[1] / _mass;//acceleration en y
-    a[2] = _sumForces[2] / _mass;//acceleration en z
+    a[0] = _sumForces[0] / _mass; // acceleration en x
+    a[1] = _sumForces[1] / _mass; // acceleration en y
+    a[2] = _sumForces[2] / _mass; // acceleration en z
 
     return a;
 }

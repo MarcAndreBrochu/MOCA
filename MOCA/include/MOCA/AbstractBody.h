@@ -51,16 +51,18 @@ public:
     // Getters et setters
     double getMass() const { return _mass; }
     const arma::vec3 &getSumForces() const { return _sumForces; }
-    const arma::vec3 &getImpulsion() const { return _impulsion; }
+    const arma::vec3 &getImpulse() const { return _impulse; }
     const arma::vec3 &getPosition() const { return _position; }
     const arma::vec3 &getVelocity() const { return _velocity; }
+    bool isFixed() const { return _isFixed; }
 
     void setMass(double mass) { _mass = mass; }
     void setPosition(const arma::vec3 &position) { _position = position; }
     void setVelocity(const arma::vec3 &velocity) { _velocity = velocity; }
+    void setIsFixed(bool fixed) { _isFixed = fixed; }
 
     arma::vec3 getAcceleration() const;
-    void resetImpulsion() { _impulsion.zeros(); }
+    virtual void resetImpulse() { _impulse.zeros(); }
 
     // Helpers
     void setPosition(double x, double y, double z);
@@ -76,7 +78,10 @@ protected:
     //Somme des forces
     arma::vec3 _sumForces;
     /** Les impulsions qui s'appliquent sur le corps */
-    arma::vec3 _impulsion;
+    arma::vec3 _impulse;
+
+    // Indique si le corps n'est pas affecte par les forces et les impulsions
+    bool _isFixed;
 
 private:
     // Derniere key associee aux forces
