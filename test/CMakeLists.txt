@@ -2,7 +2,7 @@
 # Le 1er avril 2015 (joyeux mois de l'autisme!)
 # Pour le projet MOCA, Cegep de l'Outaouais
 # ====================================================
-# DMAJ: 6 avril 2015
+# DMAJ: 23 avril 2015
 #
 # On veut compiler le test en linkant avec la librairie MOCA
 # qui a ete (on l'espere) compilee avant.
@@ -11,17 +11,18 @@ cmake_minimum_required(VERSION 3.1.0)
 
 set(TEST_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/)
 set(TEST_INC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include/)
+set(TEST_RES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/resources/)
 
 # On veut que cmake puisse executer MOC quand il le faut automatiquement.
 # De plus, on veut inclure Qt5 en tant que librairie pour le test et
 # pour l'editeur
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-find_package(Qt5Core REQUIRED)
-find_package(Qt5Gui REQUIRED)
+find_package(Qt5Widgets)
+find_package(OpenGL)
 
 # Sans le flag -fPIE, les executables ne compilent pas
-set(CMAKE_CXX_FLAGS "${Qt5Core_EXECUTABLE_COMPILE_FLAGS}")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Core_EXECUTABLE_COMPILE_FLAGS}")
 
 link_directories(${LIB_OUTPUT})
 include_directories(
@@ -29,11 +30,14 @@ include_directories(
     ${INC_OUTPUT})
 
 set(SRCS
+    glwidget.cpp
+    verticemaker.cpp
     main.cpp)
 
 # Lister les headers uniquement pour que QtCreator les liste
 set(HEADERS
-    )
+    glwidget.h
+    verticemaker.h)
 
 if(SRCS)
     # Ajouter le path des sources aux sources en utilisant une macro,
@@ -41,12 +45,15 @@ if(SRCS)
     # sources ci-haut
     add_prefix_to_list(SRCS ${TEST_SRC_DIR})
     add_prefix_to_list(HEADERS ${TEST_INC_DIR})
-    add_executable(moca_test ${SRCS} ${HEADERS})
+    add_prefix_to_list(MOCA_TEST_RESOURCES ${TEST_RES_DIR})
+
+    qt5_add_resources(RESOURCE_ADDED ${CMAKE_CURRENT_SOURCE_DIR}/resources/qtres.qrc)
+
+    add_executable(moca_test ${SRCS} ${RESOURCE_ADDED} ${HEADERS})
     add_dependencies(moca_test moca)
 
-    # Linker le test avec les librairies necessaires et installer
-    target_link_libraries(moca_test LINK_PUBLIC Qt5::Core Qt5::Gui moca
-                          ${Qt5Gui_EGL_LIBRARIES} ${Qt5Gui_OPENGL_LIBRARIES})
+    qt5_use_modules(moca_test OpenGL)
+    target_link_libraries(moca_test Qt5::Widgets moca)
 
     install(TARGETS moca_test DESTINATION ${BIN_OUTPUT} OPTIONAL)
 else()
