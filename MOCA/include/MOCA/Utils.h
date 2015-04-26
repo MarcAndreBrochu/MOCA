@@ -4,10 +4,10 @@
 #include <limits>
 #include <armadillo>
 
-static const double M_PTM_RATIO = 8; // 1m = 32px
+static const double M_PTM_RATIO = 32.0; // 1m = 32px
 
-inline double MOCA_METERS_TO_PIXELS(double meters) {
-    return meters * M_PTM_RATIO;
+inline double MOCA_PIXELS_TO_METERS(double pixels) {
+    return pixels / M_PTM_RATIO;
 }
 
 inline bool MOCA_GREATER_THAN_ZERO(double value) {
