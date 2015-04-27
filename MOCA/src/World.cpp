@@ -19,7 +19,7 @@ World::World() {
 
 World::~World() {
     for (auto it : _bodies)
-        delete it;
+        delete it.second;
 }
 
 uint World::addBody(AbstractBody *body) {
