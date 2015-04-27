@@ -16,7 +16,11 @@ World::World() {
 
     _sumAccel = zeros<vec>(3);
 }
-World::~World() {}
+
+World::~World() {
+    for (auto it : _bodies)
+        delete it;
+}
 
 uint World::addBody(AbstractBody *body) {
     _bodies[++_lastKeyAssignedBody] = body;
