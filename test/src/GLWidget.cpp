@@ -81,7 +81,7 @@ void GLWidget::initializeGL() {
     _shaderProgram = this->initializeShaderProgram(":/simple.vert", ":/simple.frag");
 
     Box *lel1 = this->createBox(0.1, 1, 1);
-    lel1->applyAngularImpulse(MOCA_MAKE_VEC3(1, 0, 0));
+    lel1->applyTorque(MOCA_MAKE_VEC3(1, 0, 0));
 
     Ball *lel = this->createSphere(1);
     lel->applyAngularImpulse(MOCA_MAKE_VEC3(0, 1, 0));
