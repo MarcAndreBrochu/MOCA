@@ -54,6 +54,8 @@ public:
     const arma::vec3 &getAngularImpulse() { return _angularImpulse; }
     bool isHollow() const { return _isHollow; }
 
+    arma::vec3 getAngularAcceleration() const;
+
     void setAngularPosition(const arma::vec3 &apos) { _angularPosition = apos; }
     void setAngularVelocity(const arma::vec3 &avel) { _angularVelocity = avel; }
 

@@ -42,6 +42,15 @@ void Solid::resetImpulse() {
     AbstractBody::resetImpulse();
 }
 
+vec3 Solid::getAngularAcceleration() const {
+
+    // tau = [I] * alpha
+    // [I]-1 * tau = [I]-1 * [I] * alpha
+    // alpha = [I]-1 * tau
+    mat33 I = this->getInertia();
+    return inv(diagmat(I)) * _sumTorques;
+}
+
 void Solid::setAngularPosition(double tx, double ty, double tz) {
     _angularPosition[0] = tx;
     _angularPosition[1] = ty;
