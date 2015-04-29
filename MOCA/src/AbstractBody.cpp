@@ -7,6 +7,10 @@ using namespace arma;
 AbstractBody::AbstractBody() {
     _lastKeyAssigned = -1; // meme si c'est un uint, uint::max + 1 = 0
     _isFixed = false;
+
+    _mass = 1; // une masse de 1 par defaut pour eviter les probs de div par zero
+    _position = {0, 0, 0};
+    _velocity = {0, 0, 0};
 }
 AbstractBody::~AbstractBody() {}
 

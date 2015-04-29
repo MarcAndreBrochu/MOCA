@@ -6,6 +6,9 @@ using namespace std;
 Solid::Solid(bool isHollow) {
     _lastKeyAssigned = -1;
     _isHollow = isHollow;
+
+    _angularPosition = {0, 0, 0};
+    _angularVelocity = {0, 0, 0};
 }
 Solid::~Solid() {}
 
