@@ -40,13 +40,7 @@ void AbstractBody::removeForce(uint fid) {
 }
 
 vec3 AbstractBody::getAcceleration() const {
-
-    vec3 a;
-    a[0] = _sumForces[0] / _mass; // acceleration en x
-    a[1] = _sumForces[1] / _mass; // acceleration en y
-    a[2] = _sumForces[2] / _mass; // acceleration en z
-
-    return a;
+    return _sumForces / _mass;
 }
 
 void AbstractBody::setPosition(double x, double y, double z) {
