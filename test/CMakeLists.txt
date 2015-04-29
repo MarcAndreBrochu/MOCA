@@ -30,14 +30,19 @@ include_directories(
     ${INC_OUTPUT})
 
 set(SRCS
-    glwidget.cpp
-    verticemaker.cpp
+    GLBox.cpp
+    GLSphere.cpp
+    GLWidget.cpp
+    VerticeMaker.cpp
     main.cpp)
 
 # Lister les headers uniquement pour que QtCreator les liste
 set(HEADERS
-    glwidget.h
-    verticemaker.h)
+    GLDrawable.h
+    GLBox.h
+    GLSphere.h
+    GLWidget.h
+    VerticeMaker.h)
 
 if(SRCS)
     # Ajouter le path des sources aux sources en utilisant une macro,
