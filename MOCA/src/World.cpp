@@ -138,6 +138,7 @@ void World::updateBody(AbstractBody *body, double timeStep) {
     vec3 angulPos = solidBody->getAngularPosition();
     vec3 angulVel = solidBody->getAngularVelocity();
     vec3 angulImp = solidBody->getAngularImpulse();
+    vec3 angulAccel = solidBody->getAngularAcceleration();
 
     mat33 I = solidBody->getInertia(); // l'equivalent de la masse mais en rotation
 
@@ -150,6 +151,14 @@ void World::updateBody(AbstractBody *body, double timeStep) {
     angulVel = inv(diagmat(I)) * topOp;
 
     angulPos += angulVel * timeStep;
+
+    // On fait maintenant la meme chose que pour le mouvement lineaire mais avec
+    // l'acceleration rotationnelle.
+    if (MOCA_GREATER_THAN_ZERO(norm(angulAccel))) {
+        Integrator::Status ns = Integrator::verlet(angulPos, angulVel, angulAccel, angulAccel, timeStep);
+        angulVel = ns.v;
+        angulPos = ns.p;
+    }
 
     solidBody->setAngularVelocity(angulVel);
     solidBody->setAngularPosition(angulPos);
