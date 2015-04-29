@@ -1,7 +1,7 @@
-#ifndef GLWIDGET_H
-#define GLWIDGET_H
+#ifndef MOCA_GLWIDGET_H
+#define MOCA_GLWIDGET_H
 
-#include <QGLWidget>
+#include <QOpenGLWidget>
 #include <QOpenGLBuffer>
 #include <QOpenGLShaderProgram>
 #include <QOpenGLVertexArrayObject>
@@ -13,57 +13,59 @@
 #include <MOCA/MOCA.h>
 #include <MOCA/Utils.h>
 
-#include "verticemaker.h"
+class GLDrawable;
 
 // Code de base d'un Widget affichant du OpenGL 3.x+.
-class GLWidget : public QGLWidget, protected QOpenGLFunctions_3_3_Core {
+class GLWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
 
     Q_OBJECT
 
 public:
-    GLWidget(const QGLFormat &format, QWidget *parent = 0);
+    GLWidget(QWidget *parent = 0);
     ~GLWidget();
+
+    // Fonctions qui s'occupent d'ajouter des formes au monde a simuler et qui s'occupent
+    // d'ajouter ces formes a l'affichage
+    Box *createBox(double dx, double dy, double dz);
+    Ball *createSphere(double radius);
 
 public slots:
     virtual void update();
 
 protected:
+    // Appele avant que le widget ne s'affiche
     virtual void initializeGL();
+    // Appele lorsque la fenetre est resize
     virtual void resizeGL(int w, int h);
     virtual void paintGL();
-    void mousePressEvent(QMouseEvent *event);
-    void mouseMoveEvent(QMouseEvent *event);
-    void wheelEvent(QWheelEvent *event);
-    void keyPressEvent(QKeyEvent *event);
+
+    // Methodes qui recoivent l'input de l'utilisateur
+    virtual void mousePressEvent(QMouseEvent *event);
+    virtual void mouseMoveEvent(QMouseEvent *event);
+    virtual void wheelEvent(QWheelEvent *event);
+    virtual void keyPressEvent(QKeyEvent *event);
 
 private:
     QOpenGLShaderProgram *initializeShaderProgram(const QString &vshPath, const QString &fshPath);
     void printOpenGLInformations();
 
+    // Fonction qui calcule une matrice de projection a la glLookAt
+    QMatrix4x4 cameraLookAt(double a, double b, double d);
+
     QOpenGLShaderProgram *_shaderProgram;
-    QOpenGLBuffer _vertexBuffer;
-    QOpenGLVertexArrayObject _vao;
 
-    vertex vertexEdgard;
-    QVector<QVector3D> verticesDEdgard;
-    QVector<QVector3D> couleurDEdgard;
+    typedef QPair<AbstractBody *, GLDrawable *> PhysicalDrawPair;
+    QVector<PhysicalDrawPair> _objectsInWorld;
 
-    QOpenGLBuffer _vertexBufferRoberto;
-
-    vertex vertexRoberto;
-    QVector<QVector3D> verticesRoberto;
-
-    QMatrix4x4 pMatrix;
-
-    double alpha;
-    double beta;
-    double distance;
-    QPoint lastMousePosition;
+    QMatrix4x4 _pMatrix;
+    double _alpha;
+    double _beta;
+    double _distance;
+    QPoint _lastMousePosition;
 
     QTimer *_timer;
 
     World *_world;
-    QVector<AbstractBody *> _bodies;
 };
 
-#endif // GLWIDGET_H
+#endif // MOCA_GLWIDGET_H
