@@ -66,6 +66,8 @@ private:
     QTimer *_timer;
 
     World *_world;
+
+    bool _initialized;
 };
 
 #endif // MOCA_GLWIDGET_H

@@ -2,6 +2,13 @@
 #include <QCoreApplication>
 #include <QWheelEvent>
 #include <QMouseEvent>
+#include <QFile>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QCoreApplication>
+
+#include <armadillo>
 
 #include <MOCA/MOCA.h>
 #include <MOCA/Utils.h>
@@ -10,18 +17,22 @@
 #include "GLBox.h"
 #include "GLSphere.h"
 
+using namespace arma;
+
 GLWidget::GLWidget(QWidget *parent) :
     QOpenGLWidget(parent) {
 
     _alpha = 25;
     _beta = -25;
-    _distance = 2.5;
+    _distance = 1;
 
     _timer = new QTimer(this);
     _timer->start((1.0f / 60.0f) * 1000);
     connect(_timer, SIGNAL(timeout()), this, SLOT(update()));
 
     _world = new World;
+
+    _initialized = false;
 }
 
 GLWidget::~GLWidget() {
@@ -59,6 +70,9 @@ Ball *GLWidget::createSphere(double radius) {
 
 void GLWidget::initializeGL() {
 
+    if (_initialized)
+        return;
+
     // ...............................................................
     // Pre-initialisation
     // ...............................................................
@@ -80,14 +94,108 @@ void GLWidget::initializeGL() {
     // Creation du shader program (premiere chose a faire!)
     _shaderProgram = this->initializeShaderProgram(":/simple.vert", ":/simple.frag");
 
-    Box *lel1 = this->createBox(0.1, 1, 1);
-    lel1->applyTorque(MOCA_MAKE_VEC3(1, 0, 0));
+    // Lire le fichier scene.json afin de creer les objets dans la scene.
+    QFile sceneFile("scene.json");
+    if (!sceneFile.open(QFile::ReadOnly)) {
+        qWarning() << "Could not open scene file!";
+        return;
+    }
 
-    Ball *lel = this->createSphere(1);
-    lel->applyAngularImpulse(MOCA_MAKE_VEC3(0, 1, 0));
+    QJsonParseError jsonParseError;
+    QJsonDocument jdoc = QJsonDocument::fromJson(sceneFile.readAll(), &jsonParseError);
 
-    _world->addBody(lel1);
-    _world->addBody(lel);
+    // Verifier si le parsing c'est fait comme il le faut
+    if (jsonParseError.error != QJsonParseError::NoError) {
+        qWarning() << "Could not parse scene file! Json: " << jsonParseError.errorString();
+        return;
+    }
+
+    QJsonObject root = jdoc.object();
+    QJsonObject worldObject = root["world"].toObject();
+    QJsonArray worldAccelArray = worldObject["acceleration"].toArray();
+
+    // QJsonArray peut etre facilement converti et interprete en tant que QVariantArray
+    vec3 worldAccel;
+    for (int i = 0; i < worldAccelArray.size(); i++)
+        worldAccel[i] = worldAccelArray[i].toDouble();
+
+    _world->applyAcceleration(worldAccel / M_PTM_RATIO);
+
+    QJsonArray bodyArray = root["bodies"].toArray();
+    for (int i = 0; i < bodyArray.size(); i++) {
+
+        QJsonObject bodyObject = bodyArray[i].toObject();
+        QJsonObject bodyAttributes = bodyObject["attributes"].toObject();
+        QJsonObject bodyPositions = bodyObject["positions"].toObject();
+        QJsonObject bodyVelocities = bodyObject["velocities"].toObject();
+        QJsonObject bodyForces = bodyObject["forces"].toObject();
+
+        QString bodyName = bodyObject["name"].toString();
+        QString bodyType = bodyObject["type"].toString();
+        bool bodyIsFixed = bodyAttributes["fixed"].toBool();
+
+        // Gerer les attributs
+        QJsonArray bodyDimensionsArray = bodyAttributes["dimensions"].toArray();
+        double bodyMass = bodyAttributes["mass"].toDouble();
+        vec3 bodyDimensions;
+        for (int j = 0; j < bodyDimensionsArray.size(); j++)
+            bodyDimensions[j] = bodyDimensionsArray[j].toDouble();
+
+        // Gerer les positions
+        QJsonArray bodyPositionArray = bodyPositions["position"].toArray();
+        QJsonArray bodyAngularPositionArray = bodyPositions["angularPosition"].toArray();
+        vec3 bodyPosition;
+        vec3 bodyAngularPosition;
+        for (int j = 0; j < bodyPositionArray.size(); j++)
+            bodyPosition[j] = bodyPositionArray[j].toDouble();
+        for (int j = 0; j < bodyAngularPositionArray.size(); j++)
+            bodyAngularPosition[j] = bodyAngularPositionArray[j].toDouble();
+
+        // Gerer les velocites
+        QJsonArray bodyVelocityArray = bodyVelocities["velocity"].toArray();
+        QJsonArray bodyAngularVelocityArray = bodyVelocities["angularVelocity"].toArray();
+        vec3 bodyVelocity;
+        vec3 bodyAngularVelocity;
+        for (int j = 0; j < bodyVelocityArray.size(); j++)
+            bodyVelocity[j] = bodyVelocityArray[j].toDouble();
+        for (int j = 0; j < bodyAngularVelocityArray.size(); j++)
+            bodyAngularVelocity[j] = bodyAngularVelocityArray[j].toDouble();
+
+        // Gerer les forces
+        QJsonArray bodyForceArray = bodyForces["force"].toArray();
+        QJsonArray bodyTorqueArray = bodyForces["torque"].toArray();
+        vec3 bodyForce;
+        vec3 bodyTorque;
+        for (int j = 0; j < bodyForceArray.size(); j++)
+            bodyForce[j] = bodyForceArray[j].toDouble();
+        for (int j = 0; j < bodyTorqueArray.size(); j++)
+            bodyTorque[j] = bodyTorqueArray[j].toDouble();
+
+        // On initialise le corps avec les donnees recueillies
+        Solid *body;
+        bodyDimensions /= M_PTM_RATIO;
+        if (bodyType == "box")
+            body = this->createBox(bodyDimensions[0], bodyDimensions[1], bodyDimensions[2]);
+        else if (bodyType == "ball")
+            body = this->createSphere(bodyDimensions[0]);
+        else {
+            qWarning() << "Invalid body type '" << bodyType << "'";
+            return;
+        }
+
+        body->setMass(bodyMass);
+        body->setPosition(bodyPosition / M_PTM_RATIO);
+        body->setAngularPosition(bodyAngularPosition);
+        body->setVelocity(bodyVelocity / M_PTM_RATIO);
+        body->setAngularVelocity(bodyAngularVelocity);
+        body->applyForce(bodyForce / M_PTM_RATIO);
+        body->applyTorque(bodyTorque);
+        body->setIsFixed(bodyIsFixed);
+
+        _world->addBody(body);
+    }
+
+    _initialized = true;
 }
 
 void GLWidget::resizeGL(int w, int h) {
