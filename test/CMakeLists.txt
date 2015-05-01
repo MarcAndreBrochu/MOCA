@@ -2,7 +2,7 @@
 # Le 1er avril 2015 (joyeux mois de l'autisme!)
 # Pour le projet MOCA, Cegep de l'Outaouais
 # ====================================================
-# DMAJ: 23 avril 2015
+# DMAJ: 30 avril 2015
 #
 # On veut compiler le test en linkant avec la librairie MOCA
 # qui a ete (on l'espere) compilee avant.
