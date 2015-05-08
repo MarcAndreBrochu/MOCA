@@ -11,6 +11,8 @@ int main(int argc, char **argv) {
 
     // Pour une raison quelconque, si on place ca apres la creation du QApplication
     // on a un crash... C'EST DE LA MAGIE DE PAS TOUCHER.
+    // Edit: j'ai compris pourquoi: Qt5 a un beug qui empeche de faire fonctionner
+    // le QSurfaceFormat apres la construction de l'app.
     QSurfaceFormat nformat;
     nformat.setDepthBufferSize(24);
     nformat.setMajorVersion(3);
