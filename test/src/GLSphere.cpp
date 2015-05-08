@@ -23,7 +23,6 @@ void GLSphere::create(float radius, float depth) {
     QVector<QVector3D> vertices;
     QVector<QVector3D> colors;
 
-    const double r2 = radius / 2.f;
     const double X = 0.525731112119133606;
     const double Z = 0.850650808352039932;
     double vdata[12][3] = {
@@ -53,7 +52,7 @@ void GLSphere::create(float radius, float depth) {
     // on en profite aussi pour scaler les vertices par-rapport au rayon desire
     for (int i = 0; i < vertices.size(); i++) {
 
-        vertices[i] *= r2;
+        vertices[i] *= radius;
 
         if(i % 2 == 0) colors << QVector3D(1.0, 0.0, 0.0);
         else colors << QVector3D(0.0, 0.0, 1.0);

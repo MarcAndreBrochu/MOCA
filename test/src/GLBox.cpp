@@ -20,9 +20,9 @@ GLBox::~GLBox() {
 
 void GLBox::create(float dx, float dy, float dz) {
 
-    float dx2 = dx / 2.0f;
-    float dy2 = dy / 2.0f;
-    float dz2 = dz / 2.0f;
+    float dx2 = dx;// / 2.0f; finalement on divise pas par deux, j'avais mal compris les
+    float dy2 = dy;// / 2.0f; dimensions de la chose
+    float dz2 = dz;// / 2.0f;
 
     // 6 faces * 2 triangles/face * 3 vertices/triangle = 36 vertices
     QVector<QVector3D> vertices = {
@@ -41,7 +41,6 @@ void GLBox::create(float dx, float dy, float dz) {
     };
 
     // On fait la meme chose avec les couleurs des faces
-    // Check la composition du tableau pis essaie de dire qu'on s'en caliss pas.
     const QVector3D red(1, 0, 0); // rouge
     const QVector3D gre(0, 1, 0); // vert
     const QVector3D blu(0, 0, 1); // bleu

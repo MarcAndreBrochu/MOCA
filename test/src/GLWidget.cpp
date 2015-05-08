@@ -3,6 +3,7 @@
 #include <QWheelEvent>
 #include <QMouseEvent>
 #include <QFile>
+#include <QFileInfo>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
@@ -22,8 +23,8 @@ using namespace arma;
 GLWidget::GLWidget(QWidget *parent) :
     QOpenGLWidget(parent) {
 
-    _alpha = 25;
-    _beta = -25;
+    _alpha = 0;
+    _beta = 0;
     _distance = 1;
 
     _timer = new QTimer(this);
@@ -95,9 +96,9 @@ void GLWidget::initializeGL() {
     _shaderProgram = this->initializeShaderProgram(":/simple.vert", ":/simple.frag");
 
     // Lire le fichier scene.json afin de creer les objets dans la scene.
-    QFile sceneFile("scene.json");
+    QFile sceneFile("/Users/mab/Desktop/Personnal/projects/\%projet-integrateur/proj-source/test/resources/scene.json");
     if (!sceneFile.open(QFile::ReadOnly)) {
-        qWarning() << "Could not open scene file!";
+        qWarning() << "Could not open scene file! ";
         return;
     }
 
@@ -119,7 +120,7 @@ void GLWidget::initializeGL() {
     for (int i = 0; i < worldAccelArray.size(); i++)
         worldAccel[i] = worldAccelArray[i].toDouble();
 
-    _world->applyAcceleration(worldAccel / M_PTM_RATIO);
+    _world->applyAcceleration(worldAccel);
 
     QJsonArray bodyArray = root["bodies"].toArray();
     for (int i = 0; i < bodyArray.size(); i++) {
@@ -173,7 +174,6 @@ void GLWidget::initializeGL() {
 
         // On initialise le corps avec les donnees recueillies
         Solid *body;
-        bodyDimensions /= M_PTM_RATIO;
         if (bodyType == "box")
             body = this->createBox(bodyDimensions[0], bodyDimensions[1], bodyDimensions[2]);
         else if (bodyType == "ball")
@@ -184,13 +184,31 @@ void GLWidget::initializeGL() {
         }
 
         body->setMass(bodyMass);
-        body->setPosition(bodyPosition / M_PTM_RATIO);
+        body->setPosition(bodyPosition);
         body->setAngularPosition(bodyAngularPosition);
-        body->setVelocity(bodyVelocity / M_PTM_RATIO);
+        body->setVelocity(bodyVelocity);
         body->setAngularVelocity(bodyAngularVelocity);
-        body->applyForce(bodyForce / M_PTM_RATIO);
+        body->applyForce(bodyForce);
         body->applyTorque(bodyTorque);
         body->setIsFixed(bodyIsFixed);
+
+        qDebug() << "\n======================";
+        qDebug() << bodyName;
+        qDebug() << "Fixed:  " << bodyIsFixed;
+        qDebug() << "Pos:    " << body->getPosition()[0] << " " << body->getPosition()[1] << " " << body->getPosition()[2];
+        qDebug() << "APos:   " << body->getAngularPosition()[0] << " " << body->getAngularPosition()[1] << " " << body->getAngularPosition()[2];
+        qDebug() << "Vel:    " << body->getVelocity()[0] << " " << body->getVelocity()[1] << " " << body->getVelocity()[2];
+        qDebug() << "AVel:   " << body->getAngularVelocity()[0] << " " << body->getAngularVelocity()[1] << " " << body->getAngularVelocity()[2];
+
+        qDebug() << "LImp:   " << body->getImpulse()[0] << " " << body->getImpulse()[1] << " " << body->getImpulse()[2];
+        qDebug() << "AImp:   " << body->getAngularImpulse()[0] << " " << body->getAngularImpulse()[1] << " " << body->getAngularImpulse()[2];
+        qDebug() << "LAccel: " << body->getAcceleration()[0] << " " << body->getAcceleration()[1] << " " << body->getAcceleration()[2];
+        qDebug() << "AAccel: " << body->getAngularAcceleration()[0] << " " << body->getAngularAcceleration()[1] << " " << body->getAngularAcceleration()[2];
+
+        qDebug() << "Force:  " << bodyForce[0] << " " << bodyForce[1] << " " << bodyForce[2];
+        qDebug() << "Torque: " << bodyTorque[0] << " " << bodyTorque[1] << " " << bodyTorque[2];
+
+        qDebug() << "Mass:   " << body->getMass();
 
         _world->addBody(body);
     }
@@ -234,9 +252,9 @@ void GLWidget::paintGL() {
 
         AbstractBody *pbody = it.first;
         mMatrix.translate(
-                pbody->getPosition()[0],
-                pbody->getPosition()[1],
-                pbody->getPosition()[2]);
+                pbody->getPosition()[0] / M_PTM_RATIO,
+                pbody->getPosition()[1] / M_PTM_RATIO,
+                pbody->getPosition()[2] / M_PTM_RATIO);
 
         // Le corps a une rotation si c'est un solide
         if (Solid *solid = dynamic_cast<Solid *>(pbody)) {
@@ -248,6 +266,9 @@ void GLWidget::paintGL() {
             mMatrix.rotate(rx, 1, 0, 0);
             mMatrix.rotate(ry, 0, 1, 0);
             mMatrix.rotate(rz, 0, 0, 1);
+
+            // Simplement pour que l'affichage se fasse en pixels plutot qu'en metres
+            mMatrix.scale(1.0 / M_PTM_RATIO);
         }
 
         // On passe une matrice differente a chaque objet:
