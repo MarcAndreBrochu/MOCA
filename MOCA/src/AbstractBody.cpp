@@ -11,6 +11,8 @@ AbstractBody::AbstractBody() {
     _mass = 1; // une masse de 1 par defaut pour eviter les probs de div par zero
     _position = {0, 0, 0};
     _velocity = {0, 0, 0};
+    _impulse = {0, 0, 0};
+    _sumForces = {0, 0, 0};
 }
 AbstractBody::~AbstractBody() {}
 

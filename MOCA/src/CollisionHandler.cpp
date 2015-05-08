@@ -6,7 +6,10 @@
 #include <cassert>
 #include <iostream>
 
+#include <armadillo>
+
 using namespace std;
+using namespace arma;
 
 CollisionHandler *CollisionHandler::_singleton = nullptr;
 CollisionHandler *CollisionHandler::sharedInstance() {
@@ -96,7 +99,57 @@ vector<CollisionHandler::CollisionPair> CollisionHandler::detectCollisions(const
     return collList;
 }
 
-bool CollisionHandler::detectSS(const Ball *A, const Ball *B) {}
+void CollisionHandler::resolveCollisions(std::vector<CollisionPair> &pool) {
+
+    for (auto it : pool) {
+
+        AbstractBody *A = it.A;
+        AbstractBody *B = it.B;
+        // indiquent si le type des deux objets de la paire est standard (sphere ou box)
+        bool typeA = true;
+        bool typeB = true;
+
+        if (Ball *ball1 = dynamic_cast<Ball *>(A)) {
+            if (Ball *ball2 = dynamic_cast<Ball *>(B))
+                this->resolveSS(ball1, ball2);
+
+            else if (Box *box2 = dynamic_cast<Box *>(B))
+                this->resolveSB(ball1, box2);
+
+            else typeB = false;
+        }
+        else if (Box *box1 = dynamic_cast<Box *>(A)) {
+            if (Ball *ball2 = dynamic_cast<Ball *>(B))
+                this->resolveSB(ball2, box1);
+
+            else if (Box *box2 = dynamic_cast<Box *>(B))
+                this->resolveBB(box1, box2);
+
+            else typeB = false;
+        }
+        else typeA = false;
+
+        // Si on ne peut trouver de methode specifique (car l'un des objets ou les
+        // deux objets ne sont pas des spheres ou des boites ou un melange), il faut
+        // appeler la methode generique
+        if (!typeA || !typeB)
+            this->resolveGeneric(A, B);
+    }
+}
+
+// Detection de collision
+bool CollisionHandler::detectSS(const Ball *A, const Ball *B) {
+
+    double radiusA = A->getRadius();
+    double radiusB = B->getRadius();
+    double distance = norm(A->getPosition() - B->getPosition());
+
+    if (distance < radiusA + radiusB)
+        return true;
+
+    return false;
+}
+
 bool CollisionHandler::detectBB(const Box *A, const Box *B) {}
 bool CollisionHandler::detectSB(const Ball *A, const Box *B) {}
 
@@ -105,3 +158,43 @@ bool CollisionHandler::detectGeneric(const AbstractBody *A, const AbstractBody *
     assert(false && A != B); // 'A != B' seulement la pour empecher les unused var warnings, sert a rien
     return false;
 }
+
+// Resolution de collisions
+void CollisionHandler::resolveSS(Ball *A, Ball *B) {
+
+    // Les vitesses resultantes d'une collision inelastique sur une dimension
+    // sont donnees par:
+    // vf_a = (Cr*m_b*(vi_b - vi_a) + m_a*vi_a + m_b*vi_b) / (m_a + m_b)
+    // vf_b = (Cr*m_a*(vi_a - vi_b) + m_a*vi_a + m_b*vi_b) / (m_a + m_b)
+    // [Cr est le coefficient de restitution (=sqrt(h2/h1))]
+    //
+    // "Pour utiliser cette formule sur plusieurs dimensions, il suffit de prendre les
+    // composantes perpendiculaires tangentes à la droite ou plan du point de contact."
+
+    double restitution = 0.7;
+    double massA = A->getMass();
+    double massB = B->getMass();
+
+    vec3 initialVelA = A->getVelocity();
+    vec3 initialVelB = B->getVelocity();
+
+    // Il faut maintenant obtenir la vitesse par-rapport au plan tangeant au point de
+    // contact... Si on a un vecteur normal a ce plan, on peut simplement projeter le
+    // vecteur vitesse sur ce vecteur normal afin d'obtenir un nouveau vecteur vitesse.
+    vec3 surfaceNormal = B->getPosition() - A->getPosition();
+    initialVelA = (dot(initialVelA, surfaceNormal) / (norm(surfaceNormal) * norm(surfaceNormal))) * surfaceNormal;
+    initialVelB = (dot(initialVelB, -surfaceNormal) / (norm(-surfaceNormal) * norm(-surfaceNormal))) * -surfaceNormal;
+
+    vec3 constantTop = massA * initialVelA + massB * initialVelB; // La partie du numerateur qui reste constante
+    vec3 finalVelA  = (restitution * massB * (initialVelB - initialVelA) + constantTop) / (massA + massB);
+    vec3 finalVelB  = (restitution * massA * (initialVelA - initialVelB) + constantTop) / (massA + massB);
+
+    vec3 impulseA = massA * (finalVelA - initialVelA);
+    vec3 impulseB = massB * (finalVelB - initialVelB);
+    A->applyImpulse(impulseA);
+    B->applyImpulse(impulseB);
+}
+
+void CollisionHandler::resolveSB(Ball *A, Box *B) {}
+void CollisionHandler::resolveBB(Box *A, Box *B) {}
+void CollisionHandler::resolveGeneric(AbstractBody *A, AbstractBody *B) {}

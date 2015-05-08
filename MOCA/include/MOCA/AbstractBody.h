@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <vector>
 #include <armadillo>
+#include <numeric>
 
 /**
  * @class AbstractBody
@@ -56,10 +57,18 @@ public:
     const arma::vec3 &getVelocity() const { return _velocity; }
     bool isFixed() const { return _isFixed; }
 
-    void setMass(double mass) { _mass = mass; }
+    void setMass(double mass) {
+        _mass = mass;
+        _oldMass = mass;
+    }
     void setPosition(const arma::vec3 &position) { _position = position; }
     void setVelocity(const arma::vec3 &velocity) { _velocity = velocity; }
-    void setIsFixed(bool fixed) { _isFixed = fixed; }
+    void setIsFixed(bool fixed) {
+
+        _isFixed = fixed;
+        if (fixed) _mass = 1e+15; // vraiment grosse masse
+        else _mass = _oldMass;
+    }
 
     arma::vec3 getAcceleration() const;
     virtual void resetImpulse() { _impulse.zeros(); }
@@ -70,6 +79,7 @@ public:
 
 protected:
     double _mass;
+    double _oldMass;
     arma::vec3 _position;
     arma::vec3 _velocity;
 

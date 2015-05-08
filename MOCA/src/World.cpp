@@ -80,6 +80,8 @@ void World::updateWorld(double timeStep) {
     }
 
     CollisionHandler *chandler = CollisionHandler::sharedInstance();
+    vector<CollisionHandler::CollisionPair> collisions = chandler->detectCollisions(_bodies);
+    chandler->resolveCollisions(collisions);
 }
 
 void World::updateBody(AbstractBody *body, double timeStep) {

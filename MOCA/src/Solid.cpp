@@ -9,6 +9,8 @@ Solid::Solid(bool isHollow) {
 
     _angularPosition = {0, 0, 0};
     _angularVelocity = {0, 0, 0};
+    _angularImpulse = {0, 0, 0};
+    _sumTorques = {0, 0, 0};
 }
 Solid::~Solid() {}
 
