@@ -58,14 +58,11 @@ if(SRCS)
     qt5_use_modules(moca_test OpenGL)
     target_link_libraries(moca_test Qt5::Widgets moca)
 
-    add_custom_command(TARGET moca_test POST_BUILD
-                       COMMAND ${CMAKE_COMMAND} -E copy
-                       ${CMAKE_CURRENT_SOURCE_DIR}/resources/scene.json ${CMAKE_SOURCE_DIR}/bin/scene.json)
+#    add_custom_command(TARGET moca_test PRE_BUILD
+#                       COMMAND ${CMAKE_COMMAND} -E copy
+#                       ${CMAKE_CURRENT_SOURCE_DIR}/resources/scene.json ${CMAKE_SOURCE_DIR}/bin/scene.json)
 
     install(TARGETS moca_test DESTINATION ${BIN_OUTPUT} OPTIONAL)
-
-    # Dummy target pour pouvoir editer facilement scene.json... diRty HaCkz
-    add_executable(dummy resources/scene.json)
 else()
     message(STATUS "${BoldYellow}Warning: no sources for target 'moca_test'${ColorReset}")
 endif()

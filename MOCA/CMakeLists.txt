@@ -8,15 +8,11 @@ cmake_minimum_required(VERSION 3.1.0)
 
 option(BUILD_SHARED_LIBS "Builds MOCA as a shared library (default ON)" ON)
 
-if(WIN32)
-    set(WIN_ARMADILLO_INCLUDE_DIR "plz")
+find_package(Armadillo REQUIRED)
+if(${ARMADILLO_FOUND})
+    message(STATUS "${BoldGreen}Found library Armadillo${ColorReset}")
 else()
-    find_package(Armadillo REQUIRED)
-    if(${ARMADILLO_FOUND})
-        message(STATUS "${BoldGreen}Found library Armadillo${ColorReset}")
-    else()
-        message(FATAL "${BoldRed}Cannot find library Armadillo${ColorReset}")
-    endif()
+    message(FATAL "${BoldRed}Cannot find library Armadillo${ColorReset}")
 endif()
 
 # Pour que cmake trouve les sources et les headers, il faut les
@@ -26,11 +22,7 @@ set(MOCA_INC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include/MOCA/)
 set(MOCA_INC_INSTALL ${CMAKE_CURRENT_SOURCE_DIR}/include/)
 
 include_directories(${MOCA_INC_DIR})
-if(WIN32)
-    include_directories(${WIN_ARMADILLO_INCLUDE_DIR})
-else()
-    include_directories(${ARMADILLO_INCLUDE_DIRS})
-endif()
+include_directories(${ARMADILLO_INCLUDE_DIRS})
 
 # Lister toutes les sources qui vont etre compilees ici.
 # Il serait possible d'utiliser la commande GLOB afin de ne
@@ -70,10 +62,7 @@ add_library(moca ${SRCS} ${HEADERS})
 # Pour que les librairies et les executables qui linkent avec MOCA
 # puissent trouver les headers lors de la compilation
 target_include_directories(moca PUBLIC ${MOCA_INC_INSTALL})
-if(WIN32)
-else()
-    target_link_libraries(moca ${ARMADILLO_LIBRARIES})
-endif()
+target_link_libraries(moca ${ARMADILLO_LIBRARIES})
 
 # Installe la librairie et les headers aux bons endroit
 install(TARGETS moca DESTINATION ${LIB_OUTPUT})
