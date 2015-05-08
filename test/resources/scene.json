@@ -5,15 +5,15 @@
 
     "bodies" : [
 
-        {   "name" : "plancher",
-            "type" : "box",
+        {   "name" : "boulette1",
+            "type" : "ball",
             "attributes" : {
-                "mass" : 1,
-                "dimensions" : [10, 0.1, 10],
-                "fixed" : true
+                "mass" : 10,
+                "dimensions" : [2],
+                "fixed" : false
             },
             "positions" : {
-                "position" : [0, -10, 0],
+                "position" : [0.02, 4, -0.01],
                 "angularPosition" : [0, 0, 0]
             },
             "velocities" : {
@@ -26,19 +26,19 @@
             }
         },
 
-        {   "name" : "boulette1",
+        {   "name" : "boulette2",
             "type" : "ball",
             "attributes" : {
                 "mass" : 10,
-                "dimensions" : [2],
-                "fixed" : false
+                "dimensions" : [3],
+                "fixed" : true
             },
             "positions" : {
-                "position" : [0, 2, 0],
+                "position" : [0, -4, 0],
                 "angularPosition" : [0, 0, 0]
             },
             "velocities" : {
-                "velocity" : [-0.5, 3, -0.1],
+                "velocity" : [0, 0, 0],
                 "angularVelocity" : [0, 0, 0]
             },
             "forces" : {
