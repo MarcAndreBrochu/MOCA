@@ -1,6 +1,8 @@
 #include "Box.h"
 #include <exception>
 
+
+
 using namespace std;
 using namespace arma;
 
@@ -14,6 +16,8 @@ Box::Box(double dx, double dy, double dz, bool isHollow) : Solid(isHollow) {
     // ou egale a zero, sinon il y a un probleme de logique...
     if (dx <= 0 || dy <= 0 || dz <= 0)
         throw logic_error("Box has zero or negative volume");
+
+    _listVertices = getVertices();
 }
 Box::Box() : Box(1, 1, 1) {}
 Box::~Box() {}
@@ -46,4 +50,28 @@ double Box::getVolume() const {
     // Le volume d'une boite est bien simplement toutes ses dimensions
     // multipliees ensemble
     return _dimensionX * _dimensionY * _dimensionZ;
+}
+
+//retourne une liste des vertices de la boîte, ordonnés anti-horaire
+arma::mat Box::getVertices(){
+    double x = this->getDimensionX();
+    double y = this->getDimensionY();
+    double z = this->getDimensionZ();
+
+
+    mat listVerts = {
+        -x, -y, z,
+        x, -y, z,
+        x, y , z,
+        -x, y, z,
+        -x, -y, -z,
+        x, -y, -z,
+        x, y ,-z,
+        -x, y, z
+    };
+    listVerts.reshape(3, 8);
+
+    /*std::cout << "listeVertices " << x << " "<< y << " " << z << std::endl;
+    std::cout << listVerts <<std::endl;*/
+    return listVerts;
 }

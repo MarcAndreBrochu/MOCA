@@ -4,6 +4,8 @@
 #include <unordered_map>
 #include <armadillo>
 
+ typedef unsigned int uint;
+
 class AbstractBody;
 
 /**

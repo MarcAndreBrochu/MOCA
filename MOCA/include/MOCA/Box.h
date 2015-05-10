@@ -3,6 +3,8 @@
 
 #include "Solid.h"
 
+#include <iostream>
+
 /**
  * @class Box
  * @brief Represente une boite.
@@ -31,9 +33,15 @@ public:
     double getDimensionY() const { return _dimensionY; }
     double getDimensionZ() const { return _dimensionZ; }
 
-    void setDimensionX(double dx) { _dimensionX = dx; }
-    void setDimensionY(double dy) { _dimensionX = dy; }
-    void setDimensionZ(double dz) { _dimensionX = dz; }
+    void setDimensionX(double dx) { _dimensionX = dx; _listVertices = getVertices();}
+    void setDimensionY(double dy) { _dimensionX = dy; _listVertices = getVertices();}
+    void setDimensionZ(double dz) { _dimensionX = dz; _listVertices = getVertices();}
+
+    //Les trois axes de la boéte normalisés et positionnés au centre de la boéte
+    arma::vec3 getXAxis() const {return arma::normalise(_listVertices.col(1) - _listVertices.col(0) + _position);}
+    arma::vec3 getYAxis() const {return arma::normalise(_listVertices.col(3) - _listVertices.col(0) + _position);}
+    arma::vec3 getZAxis() const {return arma::normalise(_listVertices.col(0) - _listVertices.col(4) + _position);}
+    arma::mat getVertices();
 
 private:
     /** Represente la longueur dans un systeme cartesien de la main droite */
@@ -42,6 +50,9 @@ private:
     double _dimensionY;
     /** Represente la largeur dans un systeme cartesien de la main droite */
     double _dimensionZ;
+
+    //Liste des vertices de la boite
+    arma::mat _listVertices;
 };
 
 #endif // MOCA_BOX_H

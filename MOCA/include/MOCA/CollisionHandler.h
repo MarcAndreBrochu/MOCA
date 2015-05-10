@@ -53,6 +53,7 @@ private:
     void resolveGeneric(AbstractBody *A, AbstractBody *B);
 
     static CollisionHandler *_singleton;
+
 };
 
 #endif // MOCA_COLLISION_HANDLER_H

@@ -13,6 +13,9 @@
  * Represente un corps rigide quelconque, que ce soit une particule ou encore
  * un volume.
  */
+
+ typedef unsigned int uint;
+
 class AbstractBody {
 
 public:
