@@ -1,6 +1,6 @@
 #include "Box.h"
 #include <exception>
-
+#include <cmath>
 
 
 using namespace std;
@@ -52,8 +52,32 @@ double Box::getVolume() const {
     return _dimensionX * _dimensionY * _dimensionZ;
 }
 
+arma::vec3 Box::getWorldXAxis() const{
+    /*mat44 matTrans;
+    double phi = _angularPosition(0)*PI/180;
+    double theta = _angularPosition(1)*PI/180
+    double psi = _angularPosition(2)*PI/180
+
+    matTrans = {
+        (cos(theta)*cos(psi)), (cos(phi)*sin(psi)+sin(phi)*sin(theta)*cos(psi)), (sin(phi)*sin(psi)-cos(phi)*sin(theta)*cos(psi)),
+        (-cos(theta))
+    }*/
+
+
+    return arma::normalise(_listVertices.col(1) - _listVertices.col(0));
+}
+arma::vec3 Box::getWorldYAxis() const{
+    return arma::normalise(_listVertices.col(3) - _listVertices.col(0) + _position);
+}
+arma::vec3 Box::getWorldZAxis() const{
+    return arma::normalise(_listVertices.col(0) - _listVertices.col(4) + _position)
+}
+
+
+
+
 //retourne une liste des vertices de la boîte, ordonnés anti-horaire
-arma::mat Box::getVertices(){
+arma::mat Box::getLocalVertices(){
     double x = this->getDimensionX();
     double y = this->getDimensionY();
     double z = this->getDimensionZ();

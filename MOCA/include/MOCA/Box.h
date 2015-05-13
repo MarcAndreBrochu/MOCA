@@ -33,15 +33,15 @@ public:
     double getDimensionY() const { return _dimensionY; }
     double getDimensionZ() const { return _dimensionZ; }
 
-    void setDimensionX(double dx) { _dimensionX = dx; _listVertices = getVertices();}
-    void setDimensionY(double dy) { _dimensionX = dy; _listVertices = getVertices();}
-    void setDimensionZ(double dz) { _dimensionX = dz; _listVertices = getVertices();}
+    void setDimensionX(double dx) { _dimensionX = dx; _listVertices = getLocalVertices();}
+    void setDimensionY(double dy) { _dimensionX = dy; _listVertices = getLocalVertices();}
+    void setDimensionZ(double dz) { _dimensionX = dz; _listVertices = getLocalVertices();}
 
     //Les trois axes de la boéte normalisés et positionnés au centre de la boéte
-    arma::vec3 getXAxis() const {return arma::normalise(_listVertices.col(1) - _listVertices.col(0) + _position);}
-    arma::vec3 getYAxis() const {return arma::normalise(_listVertices.col(3) - _listVertices.col(0) + _position);}
-    arma::vec3 getZAxis() const {return arma::normalise(_listVertices.col(0) - _listVertices.col(4) + _position);}
-    arma::mat getVertices();
+    arma::vec3 getWorldXAxis() const;
+    arma::vec3 getWorldYAxis() const;
+    arma::vec3 getWorldZAxis() const;
+    arma::mat getLocalVertices();
 
 private:
     /** Represente la longueur dans un systeme cartesien de la main droite */

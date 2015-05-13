@@ -49,13 +49,17 @@ vector<CollisionHandler::CollisionPair> CollisionHandler::detectCollisions(const
     //  2) tester(obj(#=i), obj(#>i))
     //  3) i++, goto 2)
 
+
     for (uint i = 0; i < pool.size(); i++) {
 
         AbstractBody *A = pool.at(i);
         for (uint j = i + 1; j < pool.size(); j++) {
 
             AbstractBody *B = pool.at(j);
-            bool colliding = false;
+            //bool colliding = false;
+            colliding collide;
+            collide.cond = false;
+
             // indiquent si le type des deux objets de la paire est standard (sphere ou box)
             bool typeA = true;
             bool typeB = true;
@@ -64,19 +68,19 @@ vector<CollisionHandler::CollisionPair> CollisionHandler::detectCollisions(const
             // et qui determine si ils entrent en collision
             if (Ball *ball1 = dynamic_cast<Ball *>(A)) {
                 if (Ball *ball2 = dynamic_cast<Ball *>(B))
-                    colliding = this->detectSS(ball1, ball2);
+                    collide.cond = this->detectSS(ball1, ball2);
 
                 else if (Box *box2 = dynamic_cast<Box *>(B))
-                    colliding = this->detectSB(ball1, box2);
+                    collide.cond = this->detectSB(ball1, box2);
 
                 else typeB = false;
             }
             else if (Box *box1 = dynamic_cast<Box *>(A)) {
                 if (Ball *ball2 = dynamic_cast<Ball *>(B))
-                    colliding = this->detectSB(ball2, box1);
+                    collide.cond = this->detectSB(ball2, box1);
 
                 else if (Box *box2 = dynamic_cast<Box *>(B))
-                    colliding = this->detectBB(box1, box2);
+                    collide = this->detectBB(box1, box2);
 
                 else typeB = false;
             }
@@ -86,13 +90,14 @@ vector<CollisionHandler::CollisionPair> CollisionHandler::detectCollisions(const
             // deux objets ne sont pas des spheres ou des boites ou un melange), il faut
             // appeler la methode generique
             if (!typeA || !typeB)
-                colliding = this->detectGeneric(A, B);
+                collide.cond = this->detectGeneric(A, B);
 
-            if (colliding) {
+            if (collide.cond) {
 
                 CollisionPair cpair;
                 cpair.A = A;
                 cpair.B = B;
+                cpair.mtv = collide.mtv;
 
                 collList.push_back(cpair);
             }
@@ -126,7 +131,7 @@ void CollisionHandler::resolveCollisions(std::vector<CollisionPair> &pool) {
                 this->resolveSB(ball2, box1);
 
             else if (Box *box2 = dynamic_cast<Box *>(B))
-                this->resolveBB(box1, box2);
+                this->resolveBB(box1, box2, it.mtv);
 
             else typeB = false;
         }
@@ -153,36 +158,33 @@ bool CollisionHandler::detectSS(const Ball *A, const Ball *B) {
     return false;
 }
 
-bool CollisionHandler::detectBB(const Box *A, const Box *B) {
+colliding CollisionHandler::detectBB(const Box *A, const Box *B) {
     /*Detection de la collision a l'aide du Separating Axis Theorem
         Il y a 15 axes a tester
         Si T.L est plus grand que la condition de droite, alors L est un axe séparateur,
         c'est-à-dire qu'il n'y a pas collision
         */
 
+    colliding collision;
+    collision.cond = false;
+    collision.mtv = {0,0,0};
+
     //Définissons ces variables pour faciliter la lecture
     vec3 Pa = A->getPosition();
     vec3 Pb = B->getPosition();
     vec3 T = Pb - Pa;
 
-    vec3 Ax = A->getXAxis();
-    vec3 Ay = A->getYAxis();
-    vec3 Az = A->getZAxis();
     mat33 a_axes;
-    a_axes.col(0) = A->getXAxis(); a_axes.col(1) = A->getYAxis(); a_axes.col(2) = A->getZAxis();
-    vec3 Bx = B->getXAxis();
-    vec3 By = B->getYAxis();
-    vec3 Bz = B->getZAxis();
+    a_axes.col(0) = A->getWorldXAxis(); a_axes.col(1) = A->getWorldYAxis(); a_axes.col(2) = A->getWorldZAxis();
+
     mat33 b_axes;
-    b_axes.col(0) = B->getXAxis(); b_axes.col(1) = B->getYAxis(); b_axes.col(2) = B->getZAxis();
+    b_axes.col(0) = B->getWorldXAxis(); b_axes.col(1) = B->getWorldYAxis(); b_axes.col(2) = B->getWorldZAxis();
 
+    vec3 a_dims;
+    a_dims << A->getDimensionX() << A->getDimensionY() << A->getDimensionZ();
+    vec3 b_dims;
+    b_dims << B->getDimensionX() << B->getDimensionY() << B->getDimensionZ();
 
-    double Wa = A->getDimensionX();
-    double Ha = A->getDimensionY();
-    double Da = A->getDimensionZ();
-    double Wb = B->getDimensionX();
-    double Hb = B->getDimensionY();
-    double Db = B->getDimensionZ();
 
     mat33 R;
     for(int i = 0;i<3;i++)
@@ -191,37 +193,118 @@ bool CollisionHandler::detectBB(const Box *A, const Box *B) {
 
     R = trans(R);
 
-    cout << "T       : " << T << endl;
+    /*cout << "T       : " << T << endl;
     cout << "Matr R  : " << R << endl;
-    cout << "Boéte a : " << Ax << " " << Ay << " " << Az << endl;
-    cout << "Boéte B : " << Bx << " " << By << " " << Bz << endl;
+    cout << "Boéte a : " << a_axes.col(0) << " " << a_axes.col(1) << " " << a_axes.col(2) << endl;
+    cout << "Boéte B : " << b_axes.col(0) << " " << b_axes.col(2) << " " << b_axes.col(2) << endl;*/
 
-    //ATTENTION CODE SPAGHETTI
+    vector<colliding> tests(15, collision);
+
+    for(int i=0;i<3;i++){
+        if(abs(dot(T, a_axes.col(i))) < a_dims(i) + abs(b_dims(0)*R(i, 0))+ abs(b_dims(1)*R(i,1)) + abs(b_dims(2)*R(i,2))){
+            tests[i].cond=true;
+            double overlap = a_dims(i) + abs(b_dims(0)*R(i, 0))+ abs(b_dims(1)*R(i,1)) + abs(b_dims(2)*R(i,2)) - abs(dot(T, a_axes.col(i)));
+            tests[i].mtv = overlap*a_axes.col(i);
+        }
+    }
+    for(int i=0;i<3;i++){
+        if(abs(dot(T, b_axes.col(i))) < b_dims(i) + abs(a_dims(0)*R(0, i))+ abs(a_dims(1)*R(1,i)) + abs(b_dims(2)*R(2,i))){
+            tests[i+3].cond=true;
+            double overlap = b_dims(i) + abs(a_dims(0)*R(0, i))+ abs(a_dims(1)*R(1,i)) + abs(b_dims(2)*R(2,i)) - abs(dot(T, b_axes.col(i)));
+            tests[i+3].mtv = overlap*b_axes.col(i);
+        }
+    }
+    //pour les 9 autres axes, le rapport trouver une boucle qui marche versus recopier les conditions est en défaveur de la boucle
+    //ATTENTION : CODE RAVIOLI
+    //Ax
+    if(abs(dot(T, cross(a_axes.col(0), b_axes.col(0)))) < abs(a_dims(1)*R(2,0)) + abs(a_dims(2)*R(1,0)) + abs(b_dims(1)*R(0,2)) + abs(b_dims(2)*R(0,1))){
+        tests[6].cond=true;
+        double overlap = abs(a_dims(1)*R(2,0)) + abs(a_dims(2)*R(1,0)) + abs(b_dims(1)*R(0,2)) + abs(b_dims(2)*R(0,1)) - abs(dot(T, cross(a_axes.col(0), b_axes.col(0))));
+        tests[6].mtv = cross(a_axes.col(0), b_axes.col(0))*overlap;
+    }
+    if(abs(dot(T, cross(a_axes.col(0), b_axes.col(1)))) < abs(a_dims(1)*R(2,1)) + abs(a_dims(2)*R(1,1)) + abs(b_dims(0)*R(0,2)) + abs(b_dims(2)*R(0,0))){
+        tests[7].cond=true;
+        double overlap = abs(a_dims(1)*R(2,1)) + abs(a_dims(2)*R(1,1)) + abs(b_dims(0)*R(0,2)) + abs(b_dims(2)*R(0,0)) - abs(dot(T, cross(a_axes.col(0), b_axes.col(1))));
+        tests[7].mtv = cross(a_axes.col(0), b_axes.col(1))*overlap;
+    }
+    if(abs(dot(T, cross(a_axes.col(0), b_axes.col(2)))) < abs(a_dims(1)*R(2,2)) + abs(a_dims(2)*R(1,2)) + abs(b_dims(0)*R(0,1)) + abs(b_dims(1)*R(0,0))){
+        tests[8].cond=true;
+        double overlap = abs(a_dims(1)*R(2,2)) + abs(a_dims(2)*R(1,2)) + abs(b_dims(0)*R(0,1)) + abs(b_dims(1)*R(0,0)) - abs(dot(T, cross(a_axes.col(0), b_axes.col(2))));
+        tests[8].mtv = cross(a_axes.col(0), b_axes.col(2))*overlap;
+    }
+    //Ay
+    if(abs(dot(T, cross(a_axes.col(1), b_axes.col(0)))) < abs(a_dims(0)*R(2,0)) + abs(a_dims(2)*R(0,0)) + abs(b_dims(1)*R(1,2)) + abs(b_dims(2)*R(1,1))){
+        tests[9].cond=true;
+        double overlap = abs(a_dims(0)*R(2,0)) + abs(a_dims(2)*R(0,0)) + abs(b_dims(1)*R(1,2)) + abs(b_dims(2)*R(1,1)) - abs(dot(T, cross(a_axes.col(1), b_axes.col(0))));
+        tests[9].mtv = cross(a_axes.col(1), b_axes.col(0))*overlap;
+    }
+    if(abs(dot(T, cross(a_axes.col(1), b_axes.col(1)))) < abs(a_dims(0)*R(2,1)) + abs(a_dims(2)*R(0,1)) + abs(b_dims(0)*R(1,2)) + abs(b_dims(2)*R(1,0))){
+        tests[10].cond=true;
+        double overlap = abs(a_dims(0)*R(2,1)) + abs(a_dims(2)*R(0,1)) + abs(b_dims(0)*R(1,2)) + abs(b_dims(2)*R(1,0)) - abs(dot(T, cross(a_axes.col(1), b_axes.col(1))));
+        tests[10].mtv = cross(a_axes.col(1), b_axes.col(1))*overlap;
+    }
+    if(abs(dot(T, cross(a_axes.col(1), b_axes.col(2)))) < abs(a_dims(0)*R(2,2)) + abs(a_dims(2)*R(0,2)) + abs(b_dims(0)*R(1,1)) + abs(b_dims(1)*R(1,0))){
+        tests[11].cond=true;
+        double overlap = abs(a_dims(0)*R(2,2)) + abs(a_dims(2)*R(0,2)) + abs(b_dims(0)*R(1,1)) + abs(b_dims(1)*R(1,0)) - abs(dot(T, cross(a_axes.col(1), b_axes.col(2))));
+        tests[11].mtv = cross(a_axes.col(1), b_axes.col(2))*overlap;
+    }
+    //Az
+    if(abs(dot(T, cross(a_axes.col(2), b_axes.col(0)))) < abs(a_dims(0)*R(1,0)) + abs(a_dims(1)*R(0,0)) + abs(b_dims(1)*R(2,2)) + abs(b_dims(2)*R(2,1))){
+        tests[12].cond=true;
+        double overlap = abs(a_dims(0)*R(1,0)) + abs(a_dims(1)*R(0,0)) + abs(b_dims(1)*R(2,2)) + abs(b_dims(2)*R(2,1)) - abs(dot(T, cross(a_axes.col(2), b_axes.col(0))));
+        tests[12].mtv = cross(a_axes.col(2), b_axes.col(0))*overlap;
+    }
+    if(abs(dot(T, cross(a_axes.col(2), b_axes.col(1)))) < abs(a_dims(0)*R(1,1)) + abs(a_dims(1)*R(0,1)) + abs(b_dims(0)*R(2,2)) + abs(b_dims(2)*R(2,0))){
+        tests[13].cond=true;
+        double overlap = abs(a_dims(0)*R(1,1)) + abs(a_dims(1)*R(0,1)) + abs(b_dims(0)*R(2,2)) + abs(b_dims(2)*R(2,0)) - abs(dot(T, cross(a_axes.col(2), b_axes.col(1))));
+        tests[13].mtv = cross(a_axes.col(2), b_axes.col(1))*overlap;
+    }
+    if(abs(dot(T, cross(a_axes.col(2), b_axes.col(2)))) < abs(a_dims(1)*R(2,2)) + abs(a_dims(2)*R(1,2)) + abs(b_dims(0)*R(0,1)) + abs(b_dims(1)*R(0,0))){
+        tests[14].cond=true;
+        double overlap = abs(a_dims(0)*R(1,2)) + abs(a_dims(1)*R(0,2)) + abs(b_dims(0)*R(2,1)) + abs(b_dims(1)*R(2,0)) - abs(dot(T, cross(a_axes.col(2), b_axes.col(2))));
+        tests[14].mtv = cross(a_axes.col(2), b_axes.col(2))*overlap;
+    }
+
+    collision.cond = true;
+    for(auto it : tests){
+        if(it.cond == false){
+            collision.cond = false;
+            return collision;
+        }
+        else{
+            if(norm(collision.mtv) > norm(it.mtv) || norm(collision.mtv) == 0)
+                collision.mtv = it.mtv;//On trouve le vecteur le plus petit
+        }
+    }
+    //Si on sort de la boucle, c'est que les tests sur tous les axes etaient vrais et donc qu'il y a collision
+    return collision;
+/*
+    //ATTENTION CODE RAVIOLI
     //Tests de projection des faces de A
-    if((abs(dot(T, Ax)) < Wa + abs(Wb*dot(Ax, Bx)) + abs(Hb*dot(Ax, By)) + abs(Db*dot(Ax, Bz))) &&
-        (abs(dot(T, Ay)) < Ha + abs(Wb*dot(Ay, Bx)) + abs(Hb*dot(Ay, By)) + abs(Db*dot(Ay, Bz))) &&
-        (abs(dot(T, Az)) < Da + abs(Wb*dot(Az, Bx)) + abs(Hb*dot(Az, By)) + abs(Db*dot(Az, Bz))) &&
+    if((abs(dot(T, a_axes.col(0))) < a_dims(0) + abs(b_dims(0)*dot(a_axes.col(0), b_axes.col(0))) + abs(b_dims(1)*dot(a_axes.col(0), b_axes.col(2))) + abs(b_dims(2)*dot(a_axes.col(0), b_axes.col(2)))) &&
+        (abs(dot(T, a_axes.col(1))) < a_dims(1) + abs(b_dims(0)*dot(a_axes.col(1), b_axes.col(0))) + abs(b_dims(1)*dot(a_axes.col(1), b_axes.col(2))) + abs(b_dims(2)*dot(a_axes.col(1), b_axes.col(2)))) &&
+        (abs(dot(T, a_axes.col(2))) < a_dims(2) + abs(b_dims(0)*dot(a_axes.col(2), b_axes.col(0))) + abs(b_dims(1)*dot(a_axes.col(2), b_axes.col(2))) + abs(b_dims(2)*dot(a_axes.col(2), b_axes.col(2)))) &&
         //Tests de projection des faces de B
-        (abs(dot(T, Bx)) < Wb + abs(Wa*dot(Ax, Bx)) + abs(Ha*dot(Ay, Bx)) + abs(Da*dot(Az, Bx))) &&
-        (abs(dot(T, By)) < Hb + abs(Wa*dot(Ax, By)) + abs(Ha*dot(Ay, By)) + abs(Da*dot(Az, By))) &&
-        (abs(dot(T, Bz)) < Db + abs(Wa*dot(Ax, Bz)) + abs(Ha*dot(Ay, Bz)) + abs(Da*dot(Az, Bz))) &&
+        (abs(dot(T, b_axes.col(0))) < b_dims(0) + abs(a_dims(0)*dot(a_axes.col(0), b_axes.col(0))) + abs(a_dims(1)*dot(a_axes.col(1), b_axes.col(0))) + abs(a_dims(2)*dot(a_axes.col(2), b_axes.col(0)))) &&
+        (abs(dot(T, b_axes.col(1))) < b_dims(1) + abs(a_dims(0)*dot(a_axes.col(0), b_axes.col(1))) + abs(a_dims(1)*dot(a_axes.col(1), b_axes.col(1))) + abs(a_dims(2)*dot(a_axes.col(2), b_axes.col(2)))) &&
+        (abs(dot(T, b_axes.col(2))) < b_dims(2) + abs(a_dims(0)*dot(a_axes.col(0), b_axes.col(2))) + abs(a_dims(1)*dot(a_axes.col(1), b_axes.col(2))) + abs(a_dims(2)*dot(a_axes.col(2), b_axes.col(2)))) &&
         //Tests des aretes
         //Ax
-        (abs(dot(T, cross(Ax, Bx))) < abs(Ha*R(2,0)) + abs(Da*R(1,0)) + abs(Hb*R(0,2)) + abs(Db*R(0,1))) &&
-        (abs(dot(T, cross(Ax, By))) < abs(Ha*R(2,1)) + abs(Da*R(1,1)) + abs(Wb*R(0,2)) + abs(Db*R(0,0))) &&
-        (abs(dot(T, cross(Ax, Bz))) < abs(Ha*R(2,2)) + abs(Da*R(1,2)) + abs(Wb*R(0,1)) + abs(Hb*R(0,0))) &&
+        (abs(dot(T, cross(a_axes.col(0), b_axes.col(0)))) < abs(a_dims(1)*R(2,0)) + abs(a_dims(2)*R(1,0)) + abs(b_dims(1)*R(0,2)) + abs(b_dims(2)*R(0,1))) &&
+        (abs(dot(T, cross(a_axes.col(0), b_axes.col(1)))) < abs(a_dims(1)*R(2,1)) + abs(a_dims(2)*R(1,1)) + abs(b_dims(0)*R(0,2)) + abs(b_dims(2)*R(0,0))) &&
+        (abs(dot(T, cross(a_axes.col(0), b_axes.col(2)))) < abs(a_dims(1)*R(2,2)) + abs(a_dims(2)*R(1,2)) + abs(b_dims(0)*R(0,1)) + abs(b_dims(1)*R(0,0))) &&
         //Ay
-        (abs(dot(T, cross(Ay, Bx))) < abs(Wa*R(2,0)) + abs(Da*R(0,0)) + abs(Hb*R(1,2)) + abs(Db*R(1,1))) &&
-        (abs(dot(T, cross(Ay, By))) < abs(Wa*R(2,1)) + abs(Da*R(0,1)) + abs(Wb*R(1,2)) + abs(Db*R(1,0))) &&
-        (abs(dot(T, cross(Ay, Bz))) < abs(Wa*R(2,2)) + abs(Da*R(0,2)) + abs(Wb*R(1,1)) + abs(Hb*R(1,0))) &&
+        (abs(dot(T, cross(a_axes.col(1), b_axes.col(0)))) < abs(a_dims(0)*R(2,0)) + abs(a_dims(2)*R(0,0)) + abs(b_dims(1)*R(1,2)) + abs(b_dims(2)*R(1,1))) &&
+        (abs(dot(T, cross(a_axes.col(1), b_axes.col(1)))) < abs(a_dims(0)*R(2,1)) + abs(a_dims(2)*R(0,1)) + abs(b_dims(0)*R(1,2)) + abs(b_dims(2)*R(1,0))) &&
+        (abs(dot(T, cross(a_axes.col(1), b_axes.col(2)))) < abs(a_dims(0)*R(2,2)) + abs(a_dims(2)*R(0,2)) + abs(b_dims(0)*R(1,1)) + abs(b_dims(1)*R(1,0))) &&
         //Az
-        (abs(dot(T, cross(Az, Bx))) < abs(Wa*R(1,0)) + abs(Ha*R(0,0)) + abs(Hb*R(2,2)) + abs(Db*R(2,1))) &&
-        (abs(dot(T, cross(Az, By))) < abs(Wa*R(1,1)) + abs(Ha*R(0,1)) + abs(Wb*R(2,2)) + abs(Db*R(2,0))) &&
-        (abs(dot(T, cross(Az, Bz))) < abs(Wa*R(1,2)) + abs(Ha*R(0,2)) + abs(Wb*R(2,1)) + abs(Hb*R(2,0))))
+        (abs(dot(T, cross(a_axes.col(2), b_axes.col(0)))) < abs(a_dims(0)*R(1,0)) + abs(a_dims(1)*R(0,0)) + abs(b_dims(1)*R(2,2)) + abs(b_dims(2)*R(2,1))) &&
+        (abs(dot(T, cross(a_axes.col(2), b_axes.col(1)))) < abs(a_dims(0)*R(1,1)) + abs(a_dims(1)*R(0,1)) + abs(b_dims(0)*R(2,2)) + abs(b_dims(2)*R(2,0))) &&
+        (abs(dot(T, cross(a_axes.col(2), b_axes.col(2)))) < abs(a_dims(0)*R(1,2)) + abs(a_dims(1)*R(0,2)) + abs(b_dims(0)*R(2,1)) + abs(b_dims(1)*R(2,0))))
         return true;
     //Si chaque condition est fausse, alors il y a collision
     else
-        return false;
+        return false;*/
 
 }
 bool CollisionHandler::detectSB(const Ball *A, const Box *B) {}
@@ -270,7 +353,18 @@ void CollisionHandler::resolveSS(Ball *A, Ball *B) {
 }
 
 void CollisionHandler::resolveSB(Ball *A, Box *B) {}
-void CollisionHandler::resolveBB(Box *A, Box *B) {
+
+void CollisionHandler::resolveBB(Box *A, Box *B, vec3 mtv) {
+
+    cout << "Le MTV : " << endl << mtv << endl;
+
+    vec3 iniPosA = A->getPosition();
+    vec3 iniPosB = B->getPosition();
+    //vec3 finalPosA = iniPosA - mtv;
+    vec3 finalPosB = iniPosB + mtv;
+
+
+    //B->setPosition(finalPosB);
 
 //COPIE DE RESOLVESS
     double restitution = 0.7;
