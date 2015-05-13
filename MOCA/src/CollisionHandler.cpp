@@ -9,6 +9,7 @@
 #include <armadillo>
 #include <cmath>
 
+#include <limits>
 #include <iostream>
 
 using namespace std;
@@ -177,8 +178,10 @@ colliding CollisionHandler::detectBB(const Box *A, const Box *B) {
     mat33 a_axes;
     a_axes.col(0) = A->getWorldXAxis(); a_axes.col(1) = A->getWorldYAxis(); a_axes.col(2) = A->getWorldZAxis();
 
+
     mat33 b_axes;
     b_axes.col(0) = B->getWorldXAxis(); b_axes.col(1) = B->getWorldYAxis(); b_axes.col(2) = B->getWorldZAxis();
+
 
     vec3 a_dims;
     a_dims << A->getDimensionX() << A->getDimensionY() << A->getDimensionZ();
@@ -189,7 +192,7 @@ colliding CollisionHandler::detectBB(const Box *A, const Box *B) {
     mat33 R;
     for(int i = 0;i<3;i++)
         for(int j=0;j<3;j++)
-            R(j, i) = dot(a_axes.col(i), b_axes.col(j));
+            R(j, i) = dot(a_axes.col(i), b_axes.col(j)) + numeric_limits<double>::epsilon();
 
     R = trans(R);
 
@@ -278,33 +281,6 @@ colliding CollisionHandler::detectBB(const Box *A, const Box *B) {
     }
     //Si on sort de la boucle, c'est que les tests sur tous les axes etaient vrais et donc qu'il y a collision
     return collision;
-/*
-    //ATTENTION CODE RAVIOLI
-    //Tests de projection des faces de A
-    if((abs(dot(T, a_axes.col(0))) < a_dims(0) + abs(b_dims(0)*dot(a_axes.col(0), b_axes.col(0))) + abs(b_dims(1)*dot(a_axes.col(0), b_axes.col(2))) + abs(b_dims(2)*dot(a_axes.col(0), b_axes.col(2)))) &&
-        (abs(dot(T, a_axes.col(1))) < a_dims(1) + abs(b_dims(0)*dot(a_axes.col(1), b_axes.col(0))) + abs(b_dims(1)*dot(a_axes.col(1), b_axes.col(2))) + abs(b_dims(2)*dot(a_axes.col(1), b_axes.col(2)))) &&
-        (abs(dot(T, a_axes.col(2))) < a_dims(2) + abs(b_dims(0)*dot(a_axes.col(2), b_axes.col(0))) + abs(b_dims(1)*dot(a_axes.col(2), b_axes.col(2))) + abs(b_dims(2)*dot(a_axes.col(2), b_axes.col(2)))) &&
-        //Tests de projection des faces de B
-        (abs(dot(T, b_axes.col(0))) < b_dims(0) + abs(a_dims(0)*dot(a_axes.col(0), b_axes.col(0))) + abs(a_dims(1)*dot(a_axes.col(1), b_axes.col(0))) + abs(a_dims(2)*dot(a_axes.col(2), b_axes.col(0)))) &&
-        (abs(dot(T, b_axes.col(1))) < b_dims(1) + abs(a_dims(0)*dot(a_axes.col(0), b_axes.col(1))) + abs(a_dims(1)*dot(a_axes.col(1), b_axes.col(1))) + abs(a_dims(2)*dot(a_axes.col(2), b_axes.col(2)))) &&
-        (abs(dot(T, b_axes.col(2))) < b_dims(2) + abs(a_dims(0)*dot(a_axes.col(0), b_axes.col(2))) + abs(a_dims(1)*dot(a_axes.col(1), b_axes.col(2))) + abs(a_dims(2)*dot(a_axes.col(2), b_axes.col(2)))) &&
-        //Tests des aretes
-        //Ax
-        (abs(dot(T, cross(a_axes.col(0), b_axes.col(0)))) < abs(a_dims(1)*R(2,0)) + abs(a_dims(2)*R(1,0)) + abs(b_dims(1)*R(0,2)) + abs(b_dims(2)*R(0,1))) &&
-        (abs(dot(T, cross(a_axes.col(0), b_axes.col(1)))) < abs(a_dims(1)*R(2,1)) + abs(a_dims(2)*R(1,1)) + abs(b_dims(0)*R(0,2)) + abs(b_dims(2)*R(0,0))) &&
-        (abs(dot(T, cross(a_axes.col(0), b_axes.col(2)))) < abs(a_dims(1)*R(2,2)) + abs(a_dims(2)*R(1,2)) + abs(b_dims(0)*R(0,1)) + abs(b_dims(1)*R(0,0))) &&
-        //Ay
-        (abs(dot(T, cross(a_axes.col(1), b_axes.col(0)))) < abs(a_dims(0)*R(2,0)) + abs(a_dims(2)*R(0,0)) + abs(b_dims(1)*R(1,2)) + abs(b_dims(2)*R(1,1))) &&
-        (abs(dot(T, cross(a_axes.col(1), b_axes.col(1)))) < abs(a_dims(0)*R(2,1)) + abs(a_dims(2)*R(0,1)) + abs(b_dims(0)*R(1,2)) + abs(b_dims(2)*R(1,0))) &&
-        (abs(dot(T, cross(a_axes.col(1), b_axes.col(2)))) < abs(a_dims(0)*R(2,2)) + abs(a_dims(2)*R(0,2)) + abs(b_dims(0)*R(1,1)) + abs(b_dims(1)*R(1,0))) &&
-        //Az
-        (abs(dot(T, cross(a_axes.col(2), b_axes.col(0)))) < abs(a_dims(0)*R(1,0)) + abs(a_dims(1)*R(0,0)) + abs(b_dims(1)*R(2,2)) + abs(b_dims(2)*R(2,1))) &&
-        (abs(dot(T, cross(a_axes.col(2), b_axes.col(1)))) < abs(a_dims(0)*R(1,1)) + abs(a_dims(1)*R(0,1)) + abs(b_dims(0)*R(2,2)) + abs(b_dims(2)*R(2,0))) &&
-        (abs(dot(T, cross(a_axes.col(2), b_axes.col(2)))) < abs(a_dims(0)*R(1,2)) + abs(a_dims(1)*R(0,2)) + abs(b_dims(0)*R(2,1)) + abs(b_dims(1)*R(2,0))))
-        return true;
-    //Si chaque condition est fausse, alors il y a collision
-    else
-        return false;*/
 
 }
 bool CollisionHandler::detectSB(const Ball *A, const Box *B) {}
@@ -364,7 +340,7 @@ void CollisionHandler::resolveBB(Box *A, Box *B, vec3 mtv) {
     vec3 finalPosB = iniPosB + mtv;
 
 
-    //B->setPosition(finalPosB);
+    B->setPosition(finalPosB);
 
 //COPIE DE RESOLVESS
     double restitution = 0.7;

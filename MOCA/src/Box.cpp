@@ -1,5 +1,7 @@
 #include "Box.h"
 #include <exception>
+
+#define _USE_MATH_DEFINES
 #include <cmath>
 
 
@@ -17,7 +19,7 @@ Box::Box(double dx, double dy, double dz, bool isHollow) : Solid(isHollow) {
     if (dx <= 0 || dy <= 0 || dz <= 0)
         throw logic_error("Box has zero or negative volume");
 
-    _listVertices = getVertices();
+    _listVertices = getLocalVertices();
 }
 Box::Box() : Box(1, 1, 1) {}
 Box::~Box() {}
@@ -53,25 +55,98 @@ double Box::getVolume() const {
 }
 
 arma::vec3 Box::getWorldXAxis() const{
-    /*mat44 matTrans;
-    double phi = _angularPosition(0)*PI/180;
-    double theta = _angularPosition(1)*PI/180
-    double psi = _angularPosition(2)*PI/180
+    double phi = _angularPosition(0)*M_PI/180;
+    double theta = _angularPosition(1)*M_PI/180;
+    double psi = _angularPosition(2)*M_PI/180;
 
-    matTrans = {
-        (cos(theta)*cos(psi)), (cos(phi)*sin(psi)+sin(phi)*sin(theta)*cos(psi)), (sin(phi)*sin(psi)-cos(phi)*sin(theta)*cos(psi)),
-        (-cos(theta))
-    }*/
+    vec3 axe = {1,0,0};
 
 
-    return arma::normalise(_listVertices.col(1) - _listVertices.col(0));
+    mat33 yRot = {
+        cos(theta), 0, -sin(theta),
+        0, 1, 0,
+        sin(theta), 0, cos(theta),
+    };
+    mat33 zRot = {
+        cos(psi), sin(psi), 0,
+        -sin(psi), cos(psi), 0,
+        0,0,1,
+    };
+    mat33 xRot = {
+        1,0,0,
+        0, cos(phi), sin(phi),
+        0, -sin(phi), cos(phi),
+    };
+
+
+    axe = xRot*yRot*zRot*axe;
+
+    return arma::normalise(axe);
 }
 arma::vec3 Box::getWorldYAxis() const{
-    return arma::normalise(_listVertices.col(3) - _listVertices.col(0) + _position);
+
+   double phi = _angularPosition(0)*M_PI/180;
+    double theta = _angularPosition(1)*M_PI/180;
+    double psi = _angularPosition(2)*M_PI/180;
+
+    vec3 axe = {0,1,0};
+
+
+    mat33 yRot = {
+        cos(theta), 0, -sin(theta),
+        0, 1, 0,
+        sin(theta), 0, cos(theta),
+    };
+    mat33 zRot = {
+        cos(psi), sin(psi), 0,
+        -sin(psi), cos(psi), 0,
+        0,0,1,
+    };
+    mat33 xRot = {
+        1,0,0,
+        0, cos(phi), sin(phi),
+        0, -sin(phi), cos(phi),
+    };
+
+
+    axe = xRot*yRot*zRot*axe;
+
+    return arma::normalise(axe);
 }
 arma::vec3 Box::getWorldZAxis() const{
-    return arma::normalise(_listVertices.col(0) - _listVertices.col(4) + _position)
+
+   double phi = _angularPosition(0)*M_PI/180;
+    double theta = _angularPosition(1)*M_PI/180;
+    double psi = _angularPosition(2)*M_PI/180;
+
+    vec3 axe = {0,0,1};
+
+
+    mat33 yRot = {
+        cos(theta), 0, -sin(theta),
+        0, 1, 0,
+        sin(theta), 0, cos(theta),
+    };
+    mat33 zRot = {
+        cos(psi), sin(psi), 0,
+        -sin(psi), cos(psi), 0,
+        0,0,1,
+    };
+    mat33 xRot = {
+        1,0,0,
+        0, cos(phi), sin(phi),
+        0, -sin(phi), cos(phi),
+    };
+
+    cout << "Axe Z pre-trans " << axe;
+
+    axe = xRot*yRot*zRot*axe;
+
+    cout << "Axe Z ppost-trans " << axe;
+
+    return arma::normalise(axe);
 }
+
 
 
 
